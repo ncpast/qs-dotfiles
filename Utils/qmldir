@@ -1,0 +1,4 @@
+singleton Audio 1.0 Audio.qml
+singleton StatusUtils 1.0 StatusUtils.qml
+singleton Monitors 1.0 Monitors.qml
+singleton PopupStates 1.0 PopupStates.qml
