@@ -19,6 +19,6 @@ Item {
         exitTimer.restart()
     }
 
-    property string temp_displaying: ""
-    property string power_profile: ""
+    property string temp_displaying: "-"
+    property string power_profile: "-"
 }

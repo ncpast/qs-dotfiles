@@ -1,16 +1,10 @@
 import Quickshell
-import QtQuick
-import "../Theme" 
+import QtQuick 
 
 PanelWindow {
     id: topBar
-    color: Theme.background
+    color: "transparent"
 
     implicitHeight: 8
     implicitWidth: 8
-
-    Text {
-        anchors.centerIn: parent
-        color: Theme.text
-    }
 }
