@@ -57,6 +57,16 @@ PanelWindow {
         height: parent.height
         spacing: 15
 
+        // Wifi
+
+        Text {
+            anchors.verticalCenter: parent.verticalCenter
+            font.family: 'JetBrainsMono Nerd Font'
+            font.pixelSize: 16
+            text: Monitors.network_icon
+            color: Theme.accent
+        }
+
         // Language layout
         
         Text {

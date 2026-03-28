@@ -14,6 +14,7 @@ Rectangle {
     height:  65
     radius:  rad
     visible: PopupStates.temp_is_active
+    //opacity: 0.9
 
     Item {
         x: 2 * rad
@@ -83,7 +84,7 @@ Rectangle {
                         (180 / 255) * (UPower.displayDevice.percentage / 0.9),
                         0, 1
                     )
-                    text: `${UPower.displayDevice.percentage * 100}%` 
+                    text: `${Math.round(UPower.displayDevice.percentage * 100)}%` 
                     + (UPower.onBattery ? "" : " Charging ")
                     font.family: "Hack"
                     font.weight: Font.Bold
