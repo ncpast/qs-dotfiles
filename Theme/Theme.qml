@@ -31,6 +31,21 @@ QtObject {
     readonly property color text:         '#ebdbb2'  // primary text
     readonly property color accent:       '#d2793e'  // orange (unchanged)
 
+    /* Alpine */
+    /*
+    readonly property color background:   '#1f1d1a'   // darkest rock — almost black granite
+    readonly property color background1:  '#272420'   // default bg — dark stone
+    readonly property color background2:  '#1c1a17'   // raised surface — deep shadow rock
+
+    readonly property color border_light: '#443e37'   // subtle dividers — weathered granite
+    readonly property color border:       '#5c5448'   // dividers — mid stone
+
+    readonly property color surface:      '#302c27'   // panels / popovers — exposed rock face
+    readonly property color surface_alt:  '#2a3828'   // alpine pine green — for highlights/tags
+    readonly property color text:         '#d4cfc8'   // primary text — snow-bright
+    readonly property color accent:       '#e8e4df'   // snow white accent
+    */
+
     readonly property int button_radius: 10
     readonly property int concave_radius: 20
     readonly property real button_border_width: 0

@@ -58,7 +58,12 @@ Item {
                 verticalCenter: parent.verticalCenter
             } 
 
-            StatusButton { id: "wifiButton"; icon: "󰈀"; name: "wifi" }
+            StatusButton { 
+                id: "powerProfileButton"; 
+                icon: PowerProfiles.icon; 
+                name: "PowerProfileButton";
+                onClicked: PowerProfiles.switchProfile();
+            }
             StatusButton { icon: "󰂲"; name: "bluetooth" }
             StatusButton { 
                 icon: Audio.icon; 

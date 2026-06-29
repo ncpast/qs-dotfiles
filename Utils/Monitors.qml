@@ -39,7 +39,7 @@ Item {
 
     Process {
         id: checkInternet
-        command: ["bash", "-c", "./scripts/checkInternet.sh"]
+        command: ["bash", "-c", "~/.config/quickshell/scripts/checkInternet.sh"]
 
         stdout: SplitParser {
             onRead: data => {
@@ -85,5 +85,6 @@ Item {
     function updateTemp() {
         updateGpuTempProc.running = true
         updateCpuTempProc.running = true
+            checkInternet.running = true
     }
 }

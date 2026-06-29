@@ -37,19 +37,39 @@ MouseArea {
         anchors.centerIn: parent
         radius: Theme.button_radius - 2
         color: root.pressed ? Theme.background1 : root.containsMouse ? Theme.background2 : Theme.background1
-        width: parent.width
-        height: parent.height
+        width: root.pressed ? parent.width : root.containsMouse ? parent.width + 2 : parent.width
+        height: root.pressed ? parent.height : root.containsMouse ? parent.height + 2 : parent.height
 
         Behavior on color { ColorAnimation { duration: Theme.colorChangeAnimDuration; easing.type: Easing.InOutQuad } }
+        Behavior on width { NumberAnimation { duration: Theme.colorChangeAnimDuration; easing.type: Easing.InOutQuad } }
+        Behavior on height { NumberAnimation { duration: Theme.colorChangeAnimDuration; easing.type: Easing.InOutQuad } }
 
         Item {
             anchors.centerIn: parent
             height: parent.height - iconSize
             width: height
+            Rectangle {
+                id: blendBase
+                anchors.fill: parent
+                color: iconRectangleButton.color
+                visible: false
+            }
+
+            // 2. The icon source (hidden, used only as a graphical input)
             IconImage {
+                id: trayIcon
                 anchors.fill: parent
                 source: modelData.icon
-                implicitSize: 20
+                visible: false 
+            }
+
+            // 3. The effect that applies the multiply blending mode
+            Blend {
+                anchors.fill: parent
+                source: blendBase
+                foregroundSource: trayIcon
+                mode: "lighten"
+                opacity: 0.8
             }
         }
     }

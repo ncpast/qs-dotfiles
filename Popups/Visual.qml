@@ -12,6 +12,11 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Top;
     exclusionMode: ExclusionMode.Ignore
 
+    // Init monitors: 
+    Component.onCompleted: {
+        void(PowerProfiles)
+    }
+
     anchors {
         top: true
         bottom: true
@@ -34,7 +39,7 @@ PanelWindow {
             id: outerRect
             anchors.fill: parent
             //radius: 20
-            color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 1)
+            color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.8)
             visible: false
         }
 
