@@ -8,6 +8,7 @@ import Quickshell.Wayland
 import "../Theme" 
 import "../Widgets"
 import "../Utils"
+import "../Widgets/MenuBar"
 
 PanelWindow {
     id: topBar
@@ -50,6 +51,7 @@ PanelWindow {
             //icon: "󰾲"
         }
 
+        SystemButtons {}
     }
 
     Row {
