@@ -26,6 +26,7 @@ PanelWindow {
     // Top 
 
     Column {
+        anchors.topMargin: Theme.top_panel_height
         anchors {
             horizontalCenter: parent.horizontalCenter
             top: parent.top

@@ -5,10 +5,21 @@ import Qt5Compat.GraphicalEffects
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Quickshell.Wayland
 import "../../Theme"
 import "../../Utils"
 
 PanelWindow {
+        WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+        Shortcut {
+            sequence: "Escape"
+            enabled: root.systemMenuOpen
+            onActivated: {
+                root.systemMenuOpen = false
+                root.menuOpen = ""
+            }
+        }
+
         id: systemPopup
         visible: root.systemMenuOpen && root.systemAnchorItem !== null && root.menuOpen === category
 
@@ -47,12 +58,19 @@ PanelWindow {
                     id: systemRepeater
 
                     Rectangle {
-                        property var item: root.systemMenuItems[modelData]
+                        property var item: root.systemMenuItems[modelData] || {}
+                        property var isSubmenu: item.type === "submenu" 
+                        property bool itemEnabled: {
+                            if (!item.requirements) return true
+                            if (item.requirements.attribute === "floating")
+                                return root.activeWindowFloating
+                            return true
+                        }
 
                         id: choiceRoot
                         width: menuColumn.width
                         implicitHeight: modelData != "br" ? choiceLabel.implicitHeight + 10 : 6
-                        color: Qt.rgba(1, 1, 1, choiceMouseArea.containsMouse ? 0.1 : 0)
+                        color: Qt.rgba(1, 1, 1, choiceMouseArea.containsMouse && itemEnabled ? 0.1 : 0)
 
                         topLeftRadius: index == 0 ? Theme.button_radius : 0
                         topRightRadius: index == 0 ? Theme.button_radius : 0
@@ -84,22 +102,25 @@ PanelWindow {
                             spacing: 8
 
                             Text {
-                                text: item ? item.icon : ''
+                                opacity: itemEnabled ? 1 : 0.6
+                                text: item.icon || ''
                                 font.pixelSize: 10
                                 color: Theme.text
-                                visible: item.icon != undefined
+                                //Layout.preferredWidth: 10
+                                visible: item.icon !== undefined
                                 Layout.fillHeight: true
                                 verticalAlignment: Text.AlignVCenter
                                 horizontalAlignment: Text.AlignHCenter
                             }
 
                             Text {
+                                opacity: itemEnabled ? 1 : 0.6
                                 font.weight: Font.Medium
                                 id: choiceLabel
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 verticalAlignment: Text.AlignVCenter
-                                text: item.label
+                                text: item.label || ''
                                 color: Theme.text
                                 font.pixelSize: 13
                                 font.family: "Inter"
@@ -111,17 +132,20 @@ PanelWindow {
                                 color: "transparent"
 
                                 Text {
-                                    opacity: 0.3
+                                    opacity: isSubmenu ? 1 : 0.3
                                     font.weight: Font.Medium
                                     text: {
+                                        if (isSubmenu) return ""
                                         if (!hyprBinds.loaded) return ""
-                                        if (!item || !item.shortcutDispatcher || !item.shortcutArgsContains) return ""
-                                        return hyprBinds.shortcutFor(item.shortcutDispatcher, item.shortcutArgsContains)
+                                        if (!item || item.shortcutDispatcher === undefined) return ""
+                                        return hyprBinds.shortcutFor(item.shortcutDispatcher, item.shortcutArgsContains || "")
                                     }
                                     font.pixelSize: 14
                                     color: Theme.text
+
                                     anchors.right: parent.right
-                                    anchors.bottom: parent.bottom
+                                    anchors.bottom: isSubmenu ? undefined : parent.bottom 
+                                    anchors.verticalCenter: isSubmenu ? parent.verticalCenter : undefined
                                 }
                             }
                         }
@@ -130,11 +154,14 @@ PanelWindow {
                             visible: modelData != "br"
                             id: choiceMouseArea
                             anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
+                            hoverEnabled: itemEnabled
+                            cursorShape: itemEnabled ? Qt.PointingHandCursor : undefined
                             onClicked: {
+                                if (!itemEnabled) return;
                                 if (item.type == "command" && item.action)
                                     Quickshell.execDetached(item.action);
+                                else if (item.type == "setter" && item.action)
+                                    item.action();
                                 root.systemMenuOpen = false
                                 root.menuOpen = ""
                             }

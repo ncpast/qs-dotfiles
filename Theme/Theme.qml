@@ -16,9 +16,9 @@ QtObject {
     */
 
     /* Dark mode*/
-    readonly property int top_panel_height: 33
-    readonly property int left_panel_width: 54
-    readonly property int spacer_panel_size: 8
+    readonly property int   top_panel_height: 33
+    readonly property int   left_panel_width: 0 //54
+    readonly property int   spacer_panel_size: 0 //8
 
     readonly property color background:  '#281d1c'   // hardest bg, bar base
     readonly property color background1: '#312421'   // default bg
@@ -46,18 +46,18 @@ QtObject {
     readonly property color accent:       '#e8e4df'   // snow white accent
     */
 
-    readonly property int button_radius: 10
-    readonly property int concave_radius: 20
-    readonly property real button_border_width: 0
-    readonly property int widget_spacing: 10
-    readonly property int animDuration: 200
-    readonly property int colorChangeAnimDuration: 100
+    readonly property int   button_radius: 10
+    readonly property int   concave_radius: 20
+    readonly property real  button_border_width: 0
+    readonly property int   widget_spacing: 10
+    readonly property int   animDuration: 200
+    readonly property int   colorChangeAnimDuration: 100
 
-    readonly property real bg_lighter: 1.5
+    readonly property real  bg_lighter: 1.5
 
-    readonly property int button_shadow_radius: 8
+    readonly property int   button_shadow_radius: 8
     readonly property color button_shadow_color: Qt.rgba(0, 0, 0, 0.15)
 
-    readonly property int animation_speed_desktops: 1000
+    readonly property int   animation_speed_desktops: 1000
     //readonly property int active_window_name_offset: 50
 }

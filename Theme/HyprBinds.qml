@@ -17,7 +17,7 @@ Item {
 
     FileView {
         id: configFile
-        path: Quickshell.env("HOME") + "/.config/hypr/hyprland.conf"
+        path: Quickshell.env("HOME") + "/.config/hypr/modules/input.conf"
         watchChanges: true
 
         onLoaded: {
@@ -93,17 +93,26 @@ Item {
     }
 
     function shortcutFor(dispatcher, argsContains) {
+        argsContains = argsContains || ""
+
         for (var i = 0; i < binds.length; i++) {
             var b = binds[i]
-            if (b.dispatcher === dispatcher && b.args.indexOf(argsContains) !== -1) {
+            if (b.dispatcher !== dispatcher) continue
+
+            // Explicit empty-string case, bypass indexOf entirely
+            if (argsContains === "") {
+                return formatShortcut(b.mods, b.key)
+            }
+            if (String(b.args).indexOf(argsContains) !== -1) {
                 return formatShortcut(b.mods, b.key)
             }
         }
+
         return ""
     }
 
     function formatShortcut(mods, key) {
-        var modMap = { "SUPER": "⌘", "SHIFT": "󰘶", "CTRL": "⌃", "ALT": "⌥" }
+        var modMap = { "SUPER": "⌘", "SHIFT": "󰘶 ", "CTRL": "⌃", "ALT": "⌥" }
         var parts = mods.split(" ").filter(m => m.length > 0)
         var formatted = parts.map(m => modMap[m] || m)
         formatted.push(key.toUpperCase())

@@ -59,6 +59,30 @@ PanelWindow {
         height: parent.height
         spacing: 15
 
+        // Date
+
+        Text {
+            id: dateText
+            anchors.verticalCenter: parent.verticalCenter
+            
+            // Uses Qt's built-in formatting tool. Examples: 
+            // "dd-MM-yyyy" -> 08-07-2026
+            // "dd MMM yyyy" -> 08 Jul 2026
+            text: Qt.formatDateTime(new Date(), "ddd d MMM h:mm")
+            
+            color: Theme.accent
+            font.weight: Font.DemiBold
+            font.pixelSize: 13
+            font.family: "Inter"
+
+            Timer {
+                interval: 10000 
+                running: true
+                repeat: true
+                onTriggered: dateText.text = Qt.formatDateTime(new Date(), "ddd d MMM h:mm")
+            }
+        }
+
         // Wifi
 
         Text {

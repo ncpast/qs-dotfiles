@@ -3,19 +3,31 @@ import Quickshell.Wayland
 import "./Bars"
 import "./Decor"
 import "./Popups/"
+import "./Theme"
 
 ShellRoot {
     Visual {}
-    TopBar {}
-    LeftBar {}
     
+    //EmptyBar {
+    //    anchors { bottom: true; left: true; right: true }
+    //}
+
     EmptyBar {
-        anchors { bottom: true; left: true; right: true }
+        anchors { top: true; left: true; right: true }
+        implicitHeight: Theme.top_panel_height
     }
 
     EmptyBar {
-        anchors { right: true; top: true; bottom: true }
+        anchors { left: true; top: true; bottom: true }
+        implicitWidth: Theme.left_panel_width
     }
+
+    //EmptyBar {
+    //    anchors { right: true; top: true; bottom: true }
+    //}
+
+    //LeftBar { exclusionMode: ExclusionMode.Ignore }
+    TopBar { exclusionMode: ExclusionMode.Ignore }
     
     PowerOverlay {
         id: powerOverlay
