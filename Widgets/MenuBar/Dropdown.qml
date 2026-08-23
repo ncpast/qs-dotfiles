@@ -30,7 +30,7 @@ PanelWindow {
         implicitHeight: menuColumn.implicitHeight //+ (Theme.button_radius * 2)
 
         margins.top: -1
-        margins.left: popupX - Theme.left_panel_width
+        margins.left: popupX - (Theme.leftBarHidden ? 0 : Theme.left_panel_width)
 
         color: "transparent"
 
@@ -61,7 +61,10 @@ PanelWindow {
                         property var item: root.systemMenuItems[modelData] || {}
                         property var isSubmenu: item.type === "submenu" 
                         property bool itemEnabled: {
-                            if (!item.requirements) return true
+                            if (item.label === "Dock")
+                                return false
+                            if (!item.requirements) 
+                                return true
                             if (item.requirements.attribute === "floating")
                                 return root.activeWindowFloating
                             return true
@@ -120,7 +123,7 @@ PanelWindow {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 verticalAlignment: Text.AlignVCenter
-                                text: item.label || ''
+                                text: item.label + (item.toggled ? '  ' : '') || ''
                                 color: Theme.text
                                 font.pixelSize: 13
                                 font.family: "Inter"

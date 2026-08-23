@@ -50,6 +50,27 @@ Item {
                         visible: false
                     }
 
+                    /* Something something matrix display animations :P 
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 1
+                        Repeater {
+                            model: 6
+                            Column {
+                                spacing: 1
+                                Repeater {
+                                    model: 6
+                                    Rectangle {
+                                        height: 4
+                                        width: 4
+                                        color: Qt.rgba(0.13, 0.13, 0.13)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    */
+
                     Rectangle {
                         id: mask
                         anchors.fill: parent

@@ -51,7 +51,7 @@ Row {
 
     property real   val:     stats.val
     property string display: parent.height >= 28 ? stats.display : ""
-    property color col:      stats.col
+    property color  col:      stats.col
 
     Item {
         height: parent.height
@@ -71,7 +71,7 @@ Row {
             property real animatedProgress: 0
             property int  size:     parent.height
             property int  thickness: 3
-            property color trackColor:    Qt.lighter(Theme.background1, Theme.bg_lighter)
+            property color trackColor: Qt.darker(col, 2.75)//Qt.lighter(Theme.background1, Theme.bg_lighter)
             property color progressColor: col
 
             width: size

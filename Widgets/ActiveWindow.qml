@@ -6,8 +6,23 @@ import Qt5Compat.GraphicalEffects
 import "../Theme"
 
 Item {
+    id: root
     width: label.implicitWidth + 24
     height: parent.height //label.implicitHeight + 12
+
+    property string activeTitle: "Desktop"
+
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            if (event.name === "activewindow") {
+                var parts = event.data.split(",")
+                var title = parts.slice(1).join(",")  // rejoin in case title itself contains commas
+                root.activeTitle = title.length > 0 ? title : "Desktop"
+            }
+        }
+    }
 
     DropShadow {
         anchors.fill: activeWindowNameApplet
@@ -32,16 +47,9 @@ Item {
             anchors.centerIn: parent
             //anchors.verticalCenterOffset: Theme.active_window_name_offset / 2
             text: {
-                var title = Hyprland.activeToplevel?.title || "Desktop";
-
-                if (title.length === 0)
-                    return "";
-
+                var title = root.activeTitle;
                 title = title[0].toUpperCase() + title.slice(1);
-
-                return title.length > 50
-                    ? title.slice(0, 47) + "..."
-                    : title;
+                return title.length > 50 ? title.slice(0, 47) + "..." : title;
             }
             color: Theme.text
             font.pixelSize: 13

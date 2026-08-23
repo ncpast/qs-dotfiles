@@ -22,6 +22,16 @@ PanelWindow {
     }
 
     implicitWidth: 54
+    margins.left: Theme.leftBarHidden ? -leftBar.implicitWidth : 0
+
+    Behavior on margins.left {
+        SpringAnimation {
+            spring: Theme.springStiffness
+            damping: Theme.springDamping
+            mass: Theme.springMass
+            epsilon: Theme.springEpsilon
+        }
+    }
 
     // Top 
 

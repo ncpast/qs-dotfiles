@@ -22,6 +22,20 @@ Row {
     property real popupX: 0
     property real popupY: 0
     property real buttonWidth: 0
+    property bool autofloatEnabled: false
+
+    //SystemEvents {}
+
+    FileView {
+        id: autofloatFile
+        path: Quickshell.env("HOME") + "/.config/hypr/bool/autofloat-enabled.conf"
+
+        onLoaded: {
+            root.autofloatEnabled = this.text().includes("true")
+        }
+    }
+
+    // VVV Rewrite this for all to be in a monolithic file VVV
 
     Process {
         id: activeWindowCheck
@@ -63,9 +77,9 @@ Row {
             label: "File Explorer",
             icon: "",
             type: "command",
-            action: ["sh", "-c", "cd ~ && thunar"],
+            action: ["sh", "-c", "cd ~ && nautilus"],
             shortcutDispatcher: "exec",
-            shortcutArgsContains: "thunar"
+            shortcutArgsContains: "nautilus"
         },
         "Preferences": {
             label: "Preferences",
@@ -213,12 +227,15 @@ Row {
         },
         "Toggle Dock": {
             label: "Dock",
+            icon: "󱂩",
             type: "setter",
             action: () => { console.log('hi') }
         },
         "Compact Mode": {
             label: "Compact Mode",
-            type: "setter"
+            type: "setter",
+            toggled: Theme.leftBarHidden,
+            action: () => { Theme.leftBarHidden = !Theme.leftBarHidden }
         },
         "Focus Mode": {
             label: "Focus Mode",
@@ -226,7 +243,15 @@ Row {
         },
         "Automatic Tiling": {
             label: "Automatic Tiling",
-            type: "setter"
+            icon: "󰕮",
+            type: "setter",
+            toggled: !root.autofloatEnabled,
+            action: () => {
+                root.autofloatEnabled = !root.autofloatEnabled
+                Quickshell.execDetached(["sh", "-c",
+                    `echo '$autofloatEnabled = ${root.autofloatEnabled}' > ${Quickshell.env("HOME")}/.config/hypr/bool/autofloat-enabled.conf`
+                ])
+            }
         },
     })
 
@@ -250,7 +275,9 @@ Row {
                 id: label
                 anchors.centerIn: parent
                 text: modelData
-                color: Theme.text
+                color: (mouseArea.containsMouse && !mouseArea.pressed) || (
+                    root.systemMenuOpen && root.menuOpen === modelData && !mouseArea.pressed) ?
+                    Theme.background : Theme.text
                 font.pixelSize: 13
                 font.family: "Inter"
                 font.weight: modelData === "System" ? Font.Bold : Font.DemiBold
@@ -288,6 +315,7 @@ Row {
         windows: root.menuOpen === "System" ? [systemDropdown]
             : root.menuOpen === "Workspace" ? [workspaceDropdown]
             : root.menuOpen === "Window" ? [windowDropdown]
+            : root.menuOpen === "View" ? [viewDropdown]
             : []
         active: root.systemMenuOpen
 

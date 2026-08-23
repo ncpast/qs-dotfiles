@@ -44,6 +44,7 @@ MouseArea {
         Behavior on width { NumberAnimation { duration: Theme.colorChangeAnimDuration; easing.type: Easing.InOutQuad } }
         Behavior on height { NumberAnimation { duration: Theme.colorChangeAnimDuration; easing.type: Easing.InOutQuad } }
 
+        /*
         Item {
             anchors.centerIn: parent
             height: parent.height - iconSize
@@ -70,6 +71,34 @@ MouseArea {
                 foregroundSource: trayIcon
                 mode: "lighten"
                 opacity: 0.8
+            }
+        }
+        */
+        Item {
+            anchors.centerIn: parent
+            height: parent.height - iconSize
+            width: height
+            //opacity: 0.8
+
+            IconImage {
+                id: trayIcon
+                anchors.fill: parent
+                source: modelData.icon
+                visible: false
+            }
+
+            Rectangle {
+                id: redBase
+                anchors.fill: parent
+                color: Qt.lighter(Theme.border, 1.2)
+                visible: false
+            }
+
+            Blend {
+                anchors.fill: parent
+                source: trayIcon
+                foregroundSource: redBase
+                mode: "multiply"
             }
         }
     }

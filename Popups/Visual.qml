@@ -50,12 +50,47 @@ PanelWindow {
 
             Rectangle {
                 id: contentRect
-                x: Theme.left_panel_width + Theme.spacer_panel_size - Theme.spacer_panel_size
+                x: Theme.left_panel_width + Theme.spacer_panel_size - Theme.spacer_panel_size +
+                (Theme.leftBarHidden ? -Theme.left_panel_width : 0)
                 y: Theme.top_panel_height + Theme.spacer_panel_size - Theme.spacer_panel_size
-                width: root.width - Theme.left_panel_width - Theme.spacer_panel_size
-                height: root.height - Theme.top_panel_height - Theme.spacer_panel_size
+                width: root.width - Theme.left_panel_width - Theme.spacer_panel_size +
+                (Theme.leftBarHidden ? Theme.left_panel_width + Theme.spacer_panel_size : 0)
+                height: root.height - Theme.top_panel_height - (Theme.leftBarHidden ? 0 : Theme.spacer_panel_size)
                 color: "white"
                 radius: 20
+
+                Behavior on x {
+                    SpringAnimation {
+                        spring: Theme.springStiffness
+                        damping: Theme.springDamping
+                        mass: Theme.springMass
+                        epsilon: Theme.springEpsilon
+                    }
+                }
+                Behavior on y {
+                    SpringAnimation {
+                        spring: Theme.springStiffness
+                        damping: Theme.springDamping
+                        mass: Theme.springMass
+                        epsilon: Theme.springEpsilon
+                    }
+                }
+                Behavior on width {
+                    SpringAnimation {
+                        spring: Theme.springStiffness
+                        damping: Theme.springDamping
+                        mass: Theme.springMass
+                        epsilon: Theme.springEpsilon
+                    }
+                }
+                Behavior on height {
+                    SpringAnimation {
+                        spring: Theme.springStiffness
+                        damping: Theme.springDamping
+                        mass: Theme.springMass
+                        epsilon: Theme.springEpsilon
+                    }
+                }
             }
         }
 

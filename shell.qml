@@ -1,16 +1,20 @@
 import Quickshell
 import Quickshell.Wayland
+import QtQuick
 import "./Bars"
 import "./Decor"
 import "./Popups/"
 import "./Theme"
+import "./OSD"
 
 ShellRoot {
     Visual {}
+    VolumeOSD {}
     
-    //EmptyBar {
-    //    anchors { bottom: true; left: true; right: true }
-    //}
+    EmptyBar {
+        anchors { bottom: true; left: true; right: true }
+        implicitHeight: Theme.leftBarHidden ? 0 : Theme.spacer_panel_size
+    }
 
     EmptyBar {
         anchors { top: true; left: true; right: true }
@@ -19,14 +23,15 @@ ShellRoot {
 
     EmptyBar {
         anchors { left: true; top: true; bottom: true }
-        implicitWidth: Theme.left_panel_width
+        implicitWidth: Theme.leftBarHidden ? 0 : Theme.left_panel_width
     }
 
-    //EmptyBar {
-    //    anchors { right: true; top: true; bottom: true }
-    //}
+    EmptyBar {
+        anchors { right: true; top: true; bottom: true; }
+        implicitWidth: Theme.leftBarHidden ? 0 : Theme.spacer_panel_size
+    }
 
-    //LeftBar { exclusionMode: ExclusionMode.Ignore }
+    LeftBar { exclusionMode: ExclusionMode.Ignore }
     TopBar { exclusionMode: ExclusionMode.Ignore }
     
     PowerOverlay {

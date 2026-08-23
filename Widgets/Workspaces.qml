@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import Qt5Compat.GraphicalEffects
 import "../Theme"
 
 Item {
@@ -13,39 +14,64 @@ Item {
     width: 40
     height: totalDesktops * 18  // adjust spacing
 
-    Column {
+
+    DropShadow {
+        anchors.fill: container
+        source: container
+        radius: Theme.button_shadow_radius
+        samples: 17
+        color: Theme.button_shadow_color
+    }
+
+    Rectangle {
+        id: container
         anchors {
             top: parent.top
             horizontalCenter: parent.horizontalCenter
         }
-        spacing: 10
 
-        Repeater {
-            model: totalDesktops
-            Rectangle {
-                width: 10
-                height: index == activeDesktop ? width*2 : width
-                radius: 999
-                color: {
-                    if (urgentDesktops.includes(index))
-                        return blinkState ? Theme.border : Theme.text
-                    else if (index == activeDesktop)
-                        return Theme.accent
-                    else
-                        return Theme.border
-                }
+        implicitWidth: column.implicitWidth + padding * 2
+        implicitHeight: column.implicitHeight + padding * 2
+        color: Theme.background1
+        radius: Theme.button_radius
 
-                Behavior on color {
-                    ColorAnimation {
-                        duration: Theme.animDuration
-                        easing.type: Easing.InOutQuad
+        property int padding: 10
+
+        Column {
+            anchors {
+                verticalCenter: parent.verticalCenter
+                horizontalCenter: parent.horizontalCenter
+            }
+            spacing: 10
+            id: column
+
+            Repeater {
+                model: totalDesktops
+                Rectangle {
+                    width: 10
+                    height: index == activeDesktop ? width*2 : width
+                    radius: 999
+                    color: {
+                        if (urgentDesktops.includes(index))
+                            return blinkState ? Theme.border_light : Theme.text
+                        else if (index == activeDesktop)
+                            return Theme.accent
+                        else
+                            return Theme.border_light
                     }
-                }
 
-                Behavior on height {
-                    NumberAnimation {
-                        duration: Theme.animDuration
-                        easing.type: Easing.InOutQuad
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: Theme.animDuration
+                            easing.type: Easing.InOutQuad
+                        }
+                    }
+
+                    Behavior on height {
+                        NumberAnimation {
+                            duration: Theme.animDuration
+                            easing.type: Easing.InOutQuad
+                        }
                     }
                 }
             }

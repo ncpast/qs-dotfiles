@@ -29,11 +29,20 @@ PanelWindow {
     }
 
     Row {
-        x: Theme.left_panel_width + Theme.concave_radius
+        x: ( Theme.leftBarHidden ? 0 : Theme.left_panel_width) + Theme.concave_radius
         id: sensors
         anchors.verticalCenter: parent.verticalCenter
         height: parent.height - 10
         spacing: 7
+
+        Behavior on x {
+            SpringAnimation {
+                spring: Theme.springStiffness
+                damping: Theme.springDamping
+                mass: Theme.springMass
+                epsilon: Theme.springEpsilon
+            }
+        }
 
         Sensor {
             name : "battery"
@@ -56,30 +65,25 @@ PanelWindow {
 
     Row {
         anchors.right: parent.right
+        padding: Theme.concave_radius
         height: parent.height
-        spacing: 15
+        spacing: 20
 
-        // Date
+        // Power Profile
 
         Text {
-            id: dateText
             anchors.verticalCenter: parent.verticalCenter
-            
-            // Uses Qt's built-in formatting tool. Examples: 
-            // "dd-MM-yyyy" -> 08-07-2026
-            // "dd MMM yyyy" -> 08 Jul 2026
-            text: Qt.formatDateTime(new Date(), "ddd d MMM h:mm")
-            
+            font.family: 'JetBrainsMono Nerd Font'
+            font.pixelSize: 16
+            text: PowerProfiles.icon;
             color: Theme.accent
-            font.weight: Font.DemiBold
-            font.pixelSize: 13
-            font.family: "Inter"
 
-            Timer {
-                interval: 10000 
-                running: true
-                repeat: true
-                onTriggered: dateText.text = Qt.formatDateTime(new Date(), "ddd d MMM h:mm")
+            MouseArea {
+                id: mouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked: PowerProfiles.switchProfile();
+                cursorShape: Qt.PointingHandCursor
             }
         }
 
@@ -92,6 +96,16 @@ PanelWindow {
             text: Monitors.network_icon
             color: Theme.accent
         }
+
+        // Sound
+
+        Text {
+            anchors.verticalCenter: parent.verticalCenter
+            font.family: 'JetBrainsMono Nerd Font'
+            font.pixelSize: 14
+            text: Audio.icon
+            color: Theme.accent
+        }  
 
         // Language layout
         
@@ -121,14 +135,34 @@ PanelWindow {
             }
         }
 
-        InfoSlider {}
+
+        // Date
+
+        Text {
+            id: dateText
+            anchors.verticalCenter: parent.verticalCenter
+            
+            // Uses Qt's built-in formatting tool. Examples: 
+            // "dd-MM-yyyy" -> 08-07-2026
+            // "dd MMM yyyy" -> 08 Jul 2026
+            text: Qt.formatDateTime(new Date(), "ddd d MMM h:mm")
+            
+            color: Theme.accent
+            font.weight: Font.DemiBold
+            font.pixelSize: 13
+            font.family: "Inter"
+
+            Timer {
+                interval: 10000 
+                running: true
+                repeat: true
+                onTriggered: dateText.text = Qt.formatDateTime(new Date(), "ddd d MMM h:mm")
+            }
+        }
+
+        //InfoSlider {}
 
         // Right margin
-
-        Item {
-            width: (parent.spacing - 8) * -1
-            height: width
-        }
 
         Component.onCompleted: {
             Monitors.updateTemp()
