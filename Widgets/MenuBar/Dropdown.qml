@@ -140,8 +140,8 @@ PanelWindow {
                                     text: {
                                         if (isSubmenu) return ""
                                         if (!hyprBinds.loaded) return ""
-                                        if (!item || item.shortcutDispatcher === undefined) return ""
-                                        return hyprBinds.shortcutFor(item.shortcutDispatcher, item.shortcutArgsContains || "")
+                                        if (!item || item.shortcut === undefined) return ""
+                                        return hyprBinds.shortcutFor(item.shortcut || "")
                                     }
                                     font.pixelSize: 14
                                     color: Theme.text

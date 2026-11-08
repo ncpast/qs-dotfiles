@@ -1,121 +1,76 @@
+import QtQuick
 import Quickshell
-import QtQuick
-import Quickshell.Services.Mpris
-import Qt5Compat.GraphicalEffects
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
-import QtQuick
 import Quickshell.Io
+import Quickshell.Hyprland
 
+// Looks shortcuts up by bind description, using `hyprctl binds -j`.
+// In input.lua: hl.bind("SUPER + Q", ..., { description = "terminal" })
+// In QML:       shortcuts.shortcutFor("terminal")  ->  "⌘ Q"
 Item {
     id: root
 
-    property var binds: []
-    property var variables: ({})
+    // description -> { mods, key }
+    property var byDescription: ({})
     property bool loaded: false
 
-    FileView {
-        id: configFile
-        path: Quickshell.env("HOME") + "/.config/hypr/modules/input.conf"
-        watchChanges: true
+    Process {
+        id: bindsProc
+        command: ["hyprctl", "binds", "-j"]
 
-        onLoaded: {
-            var content = text()
-            root.variables = parseVariables(content)
-            root.binds = parseBinds(content, root.variables)
-            root.loaded = true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    root.byDescription = root.parseBinds(JSON.parse(text))
+                    root.loaded = true
+                } catch (e) {
+                    console.warn("Shortcuts: failed to parse hyprctl output:", e)
+                }
+            }
         }
     }
-    
-    function stripComment(line) {
-        var inQuotes = false
-        for (var i = 0; i < line.length; i++) {
-            var c = line[i]
-            if (c === '"') inQuotes = !inQuotes
-            if (c === '#' && !inQuotes) {
-                return line.substring(0, i)
-            }
+
+    // Refresh whenever Hyprland reloads its config
+    Connections {
+        target: Hyprland
+        function onRawEvent(event) {
+            if (event.name === "configreloaded") bindsProc.running = true
         }
-        return line
     }
 
-    function parseVariables(content) {
-        var vars = {}
-        var lines = content.split("\n")
-        var varRegex = /^\s*\$(\w+)\s*=\s*(.+?)\s*$/
+    Component.onCompleted: bindsProc.running = true
 
-        for (var i = 0; i < lines.length; i++) {
-            var line = stripComment(lines[i])
-            var match = line.match(varRegex)
-            if (match) {
-                vars[match[1]] = match[2].trim()
-            }
-        }
-        return vars
+    function modsFromMask(mask) {
+        var names = []
+        if (mask & 64) names.push("SUPER")
+        if (mask & 4)  names.push("CTRL")
+        if (mask & 8)  names.push("ALT")
+        if (mask & 1)  names.push("SHIFT")
+        return names.join(" ")
     }
 
-    function parseBinds(content, vars) {
-        var result = []
-        var lines = content.split("\n")
-        var bindRegex = /^\s*bind\s*=\s*([^,]*),\s*([^,]*),\s*([^,]*)(?:,\s*(.*))?$/
-
-        for (var i = 0; i < lines.length; i++) {
-            var line = stripComment(lines[i])
-            var match = line.match(bindRegex)
-            if (match) {
-                var mods = resolveVars(match[1].trim(), vars)
-                var key = match[2].trim()
-                var dispatcher = match[3].trim()
-                var args = resolveVars((match[4] || "").trim(), vars)
-
-                result.push({ mods: mods, key: key, dispatcher: dispatcher, args: args })
-            }
-        }
-        return result
+    function parseBinds(json) {
+        var map = {}
+        json.forEach(b => {
+            if (b.has_description && b.description)
+                map[b.description] = { mods: modsFromMask(b.modmask), key: b.key }
+        })
+        return map
     }
 
-    function resolveVars(str, vars) {
-        // Replace every $name occurrence with its resolved value
-        var result = str
-        var varRegex = /\$(\w+)/g
-        var match
-        var seen = 0
-        while ((match = varRegex.exec(result)) !== null && seen < 10) {
-            var name = match[1]
-            if (vars[name] !== undefined) {
-                result = result.replace("$" + name, vars[name])
-                varRegex.lastIndex = 0   // restart scan since string changed
-            }
-            seen++   // safety cap in case of unresolved/circular refs
-        }
-        return result
-    }
-
-    function shortcutFor(dispatcher, argsContains) {
-        argsContains = argsContains || ""
-
-        for (var i = 0; i < binds.length; i++) {
-            var b = binds[i]
-            if (b.dispatcher !== dispatcher) continue
-
-            // Explicit empty-string case, bypass indexOf entirely
-            if (argsContains === "") {
-                return formatShortcut(b.mods, b.key)
-            }
-            if (String(b.args).indexOf(argsContains) !== -1) {
-                return formatShortcut(b.mods, b.key)
-            }
-        }
-
-        return ""
+    function shortcutFor(description) {
+        var b = byDescription[description]
+        return b ? formatShortcut(b.mods, b.key) : ""
     }
 
     function formatShortcut(mods, key) {
         var modMap = { "SUPER": "⌘", "SHIFT": "󰘶 ", "CTRL": "⌃", "ALT": "⌥" }
+        var keyMap = { "ESCAPE": "Esc" }
+
         var parts = mods.split(" ").filter(m => m.length > 0)
         var formatted = parts.map(m => modMap[m] || m)
-        formatted.push(key.toUpperCase())
+
+        var k = key.toUpperCase()
+        formatted.push(keyMap[k] || k)
         return formatted.join(" ")
     }
 }

@@ -13,10 +13,10 @@ Item {
     }
     property int index: 2;
     property string powerProfile: '';
-    property string bufferProfile: '';
+    // property string bufferProfile: '';
 
     readonly property string icon: {
-        if (powerProfile != bufferProfile) return '';
+        //if (powerProfile != bufferProfile) return '';
 
         switch(powerProfile) {
             case 'power-saver':
@@ -34,13 +34,13 @@ Item {
         const nextIndex = (index + 1) % 3
         const nextProfile = Object.keys(profiles).find(key => profiles[key] === nextIndex)
         index = nextIndex
-        bufferProfile = nextProfile
+        powerProfile = nextProfile
         writeProfile.running = true
     }
 
     Process {
         id: writeProfile
-        command: ["powerprofilesctl", "set", bufferProfile]
+        command: ["powerprofilesctl", "set", powerProfile]
     }
 
     Process {
@@ -51,7 +51,7 @@ Item {
         stdout: SplitParser {
             onRead: data => {
                 powerProfile = data;
-                bufferProfile = powerProfile;
+                // bufferProfile = powerProfile;
                 index = profiles[data];
             }
         }

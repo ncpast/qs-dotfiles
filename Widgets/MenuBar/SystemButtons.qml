@@ -28,7 +28,7 @@ Row {
 
     FileView {
         id: autofloatFile
-        path: Quickshell.env("HOME") + "/.config/hypr/bool/autofloat-enabled.conf"
+        path: Quickshell.env("HOME") + "/.config/hypr/bool/autofloat-enabled.lua"
 
         onLoaded: {
             root.autofloatEnabled = this.text().includes("true")
@@ -70,16 +70,14 @@ Row {
             icon: "",
             type: "command",
             action: ["sh", "-c", "cd ~ && kitty"],
-            shortcutDispatcher: "exec",
-            shortcutArgsContains: "kitty"
+            shortcut: "terminal"
         },
         "File Explorer": {
             label: "File Explorer",
             icon: "",
             type: "command",
             action: ["sh", "-c", "cd ~ && nautilus"],
-            shortcutDispatcher: "exec",
-            shortcutArgsContains: "nautilus"
+            shortcut: "file-manager"
         },
         "Preferences": {
             label: "Preferences",
@@ -109,9 +107,8 @@ Row {
             label: "Log Out",
             icon: " ",
             type: "command",
-            action: ["sh", "-c", "command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch exit"],
-            shortcutDispatcher: "exec",
-            shortcutArgsContains: "hyprshutdown"
+            action: ["sh", "-c", "command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"],
+            shortcut: "exit-hyprland"
         },
         "Shut Down": {
             label: "Shut Down",
@@ -134,23 +131,21 @@ Row {
             label: "New",
             icon: "",
             type: "command",
-            action: ["hyprctl", "dispatch", "workspace", "empty"]
+            action: ["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \"empty\" })"],
         },
         "Previous Workspace": {
             label: "Previous",
             icon: "",
             type: "command",
-            action: ["hyprctl", "dispatch", "workspace", "-1"],
-            shortcutDispatcher: "workspace",
-            shortcutArgsContains: "e-1"
+            action: ["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \"-1\" })"],
+            shortcut: "workspace-prev"
         },
         "Next Workspace": {
             label: "Next",
             type: "command",
             icon: "",
-            action: ["hyprctl", "dispatch", "workspace", "+1"],
-            shortcutDispatcher: "workspace",
-            shortcutArgsContains: "e+1"
+            action: ["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \"+1\" })"],
+            shortcut: "workspace-next"
         },
         "Tiled Workspace": {
             label: "Tile All",
@@ -174,29 +169,26 @@ Row {
             label: "Maximize",
             icon: "",
             type: "command",
-            action: ["hyprctl", "dispatch", "fullscreen", "1"],
-            shortcutDispatcher: "fullscreen 1"
+            action: ["hyprctl", "dispatch", "fullscreen", "1"]
         },
         "Fullscreen": {
             label: "Fullscreen",
             icon: "",
             type: "command",
-            action: ["hyprctl", "dispatch", "fullscreen", "0"],
-            shortcutDispatcher: "fullscreen 0"
+            action: ["hyprctl", "dispatch", "fullscreen", "0"]
         },
         "Close Window": {
             label: "Close",
             icon: "󰅙",
             type: "command",
             action: ["hyprctl", "dispatch", "killactive"],
-            shortcutDispatcher: "killactive"
+            shortcut: "close-window"
         },
         "Move to New Workspace": {
             label: "To New Workspace",
             type: "command",
             action: ["hyprctl", "dispatch", "movetoworkspace", "empty"],
-            shortcutDispatcher: "movetoworkspace",
-            shortcutArgsContains: "empty"
+            shortcut: "workspace-new"
         },
         "Move to Workspace": {
             label: "Move to Workspace...",
@@ -217,13 +209,13 @@ Row {
             label: "Toggle Floating",
             type: "command",
             action: ["hyprctl", "dispatch", "togglefloating"],
-            shortcutDispatcher: "togglefloating"
+            shortcut: "toggle-float"
         },
         "Enable Pseudotiling": {
             label: "Pseudotiling",
             type: "command",
             action: ["hyprctl", "dispatch", "pseudo"],
-            shortcutDispatcher: "pseudo"
+            shortcut: "toggle-pseudo"
         },
         "Toggle Dock": {
             label: "Dock",
@@ -249,7 +241,7 @@ Row {
             action: () => {
                 root.autofloatEnabled = !root.autofloatEnabled
                 Quickshell.execDetached(["sh", "-c",
-                    `echo '$autofloatEnabled = ${root.autofloatEnabled}' > ${Quickshell.env("HOME")}/.config/hypr/bool/autofloat-enabled.conf`
+                    `echo 'return { enabled = ${root.autofloatEnabled} }' > ${Quickshell.env("HOME")}/.config/hypr/bool/autofloat-enabled.lua`
                 ])
             }
         },
