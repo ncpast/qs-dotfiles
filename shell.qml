@@ -3,13 +3,18 @@ import Quickshell.Wayland
 import QtQuick
 import "./Bars"
 import "./Decor"
+import "./Desktop"
 import "./Popups/"
 import "./Theme"
 import "./OSD"
+import "./Notifications"
 
 ShellRoot {
     Visual {}
     VolumeOSD {}
+    Desktop {}
+    Notifications {}
+    UsbMonitor {}
     
     EmptyBar {
         anchors { bottom: true; left: true; right: true }

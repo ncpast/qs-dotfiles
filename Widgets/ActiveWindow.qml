@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Effects
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Hyprland
 import Qt5Compat.GraphicalEffects
 import Quickshell.Services.Mpris
@@ -10,7 +11,7 @@ import "../Utils"
 
 Item {
     id: root
-    width: (hasMedia ? mediaRow.implicitWidth : label.implicitWidth) + 24
+    width: (showWorkspaces ? Math.max(dots.width + 24, 0) : (hasMedia ? mediaRow.implicitWidth : label.implicitWidth) + 24)
     height: parent.height
 
     Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
@@ -46,12 +47,17 @@ Item {
     }
     
 
+    // Hyprland drops empty workspaces, so fill the gaps: show every id from 1
+    // up to the highest existing (or focused) workspace.
     property var workspaceIds: {
+        var max = 0
         var list = Hyprland.workspaces.values
-        var ids = []
         for (var i = 0; i < list.length; i++)
-            if (list[i].id > 0) ids.push(list[i].id)
-        ids.sort((a, b) => a - b)
+            if (list[i].id > max) max = list[i].id
+        var fw = Hyprland.focusedWorkspace
+        if (fw !== null && fw.id > max) max = fw.id
+        var ids = []
+        for (var n = 1; n <= max; n++) ids.push(n)
         return ids
     }
 
@@ -279,24 +285,70 @@ Item {
         Row {
             id: dots
             anchors.centerIn: parent
-            spacing: 8
+            spacing: 4
             opacity: root.showWorkspaces ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: 200 } }
 
             Repeater {
                 model: root.workspaceIds
 
-                Rectangle {
-                    property bool current: Hyprland.focusedWorkspace !== null
-                                        && Hyprland.focusedWorkspace.id === modelData
-                    width: 8
-                    height: 8
-                    radius: 4
-                    color: Theme.text
-                    opacity: current ? 1.0 : 0.3
-                    scale: current ? 1.25 : 1.0
-                    Behavior on opacity { NumberAnimation { duration: 150 } }
-                    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+                // One pill per workspace: a small dot when empty, otherwise up to
+                // 3 icons (one per distinct app). The focused workspace gets a ring.
+                Item {
+                    id: cell
+                    required property int modelData
+
+                    readonly property bool current: Hyprland.focusedWorkspace !== null
+                                                 && Hyprland.focusedWorkspace.id === modelData
+                    readonly property var apps: (HyprEvents.workspaceApps[modelData] || []).slice(0, 3)
+                    readonly property bool empty: apps.length === 0
+
+                    width: Math.max(22, empty ? 0 : icons.implicitWidth + 12)
+                    height: 22
+                    Behavior on width { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: height / 2
+                        border.width: 1.5
+                        // fade the ring via alpha (same hue) instead of toggling its width
+                        border.color: cell.current ? Theme.text : Qt.alpha(Theme.text, 0)
+                        color: cell.current ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(1, 1, 1, 0)
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on border.color { ColorAnimation { duration: 150 } }
+                    }
+
+                    Rectangle {
+                        visible: cell.empty
+                        anchors.centerIn: parent
+                        width: 4
+                        height: 4
+                        radius: 2
+                        color: Theme.text
+                        opacity: cell.current ? 0.9 : 0.35
+                    }
+
+                    Row {
+                        id: icons
+                        anchors.centerIn: parent
+                        spacing: 4
+
+                        Repeater {
+                            model: cell.apps
+
+                            Image {
+                                id: appIcon
+                                required property string modelData
+                                width: 16
+                                height: 16
+                                sourceSize: Qt.size(32, 32)
+                                smooth: true
+                                asynchronous: true
+                                opacity: cell.current ? 1.0 : 0.75
+                                source: AppIcons.resolve(modelData)
+                            }
+                        }
+                    }
                 }
             }
         }

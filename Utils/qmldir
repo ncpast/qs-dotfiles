@@ -4,3 +4,6 @@ singleton Monitors 1.0 Monitors.qml
 singleton PopupStates 1.0 PopupStates.qml
 singleton PowerProfiles 1.0 PowerProfiles.qml
 singleton HyprEvents 1.0 HyprEvents.qml
+singleton AppIcons 1.0 AppIcons.qml
+
+singleton Brightness 1.0 Brightness.qml

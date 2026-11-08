@@ -2,7 +2,6 @@ import Quickshell
 import QtQuick
 import Quickshell.Services.Mpris
 import Qt5Compat.GraphicalEffects
-import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell.Hyprland
@@ -45,7 +44,7 @@ Row {
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
-                    var data = JSON.parse(this.text)
+                    const data = JSON.parse(this.text)
                     root.activeWindowFloating = data.floating === true
                 } catch (e) {
                     root.activeWindowFloating = false
@@ -169,25 +168,25 @@ Row {
             label: "Maximize",
             icon: "",
             type: "command",
-            action: ["hyprctl", "dispatch", "fullscreen", "1"]
+            action: ["hyprctl", "dispatch", "hl.dsp.window.fullscreen({ mode = \"maximized\", action = \"toggle\" })"]
         },
         "Fullscreen": {
             label: "Fullscreen",
             icon: "",
             type: "command",
-            action: ["hyprctl", "dispatch", "fullscreen", "0"]
+            action: ["hyprctl", "dispatch", "hl.dsp.window.fullscreen({ mode = \"fullscreen\", action = \"toggle\" })"]
         },
         "Close Window": {
             label: "Close",
             icon: "󰅙",
             type: "command",
-            action: ["hyprctl", "dispatch", "killactive"],
+            action: ["hyprctl", "dispatch", "hl.dsp.window.close()"],
             shortcut: "close-window"
         },
         "Move to New Workspace": {
             label: "To New Workspace",
             type: "command",
-            action: ["hyprctl", "dispatch", "movetoworkspace", "empty"],
+            action: ["hyprctl", "dispatch", "hl.dsp.window.move({ workspace = \"empty\" })"],
             shortcut: "workspace-new"
         },
         "Move to Workspace": {
@@ -198,7 +197,7 @@ Row {
             label: "Pin",
             type: "command",
             icon: " ",
-            action: ["hyprctl", "dispatch", "pin"],
+            action: ["hyprctl", "dispatch", "hl.dsp.window.pin()"],
             shortcutDispatcher: "pin",
             requirements: {
                 type: "window",
@@ -208,13 +207,13 @@ Row {
         "Toggle Floating": {
             label: "Toggle Floating",
             type: "command",
-            action: ["hyprctl", "dispatch", "togglefloating"],
+            action: ["hyprctl", "dispatch", "hl.dsp.window.float({ action = \"toggle\" })"],
             shortcut: "toggle-float"
         },
         "Enable Pseudotiling": {
             label: "Pseudotiling",
             type: "command",
-            action: ["hyprctl", "dispatch", "pseudo"],
+            action: ["hyprctl", "dispatch", "hl.dsp.window.pseudo()"],
             shortcut: "toggle-pseudo"
         },
         "Toggle Dock": {
@@ -308,6 +307,7 @@ Row {
             : root.menuOpen === "Workspace" ? [workspaceDropdown]
             : root.menuOpen === "Window" ? [windowDropdown]
             : root.menuOpen === "View" ? [viewDropdown]
+            : root.menuOpen === "Programs" ? [programsDropdown]
             : []
         active: root.systemMenuOpen
 
@@ -336,6 +336,10 @@ Row {
         property var content: ["Close Window", "Maximize", "Fullscreen", "Pin Window", "br", 
         "Move to Workspace", "Move to New Workspace", "br", "Toggle Floating", "Enable Pseudotiling"]
         property var category: "Window"
+    }
+
+    ProgramsDropdown {
+        id: programsDropdown
     }
 
     Dropdown {

@@ -1,0 +1,4 @@
+singleton Theme 1.0 Theme.qml
+singleton Colors 1.0 Colors.qml
+HyprBinds 1.0 HyprBinds.qml
+singleton DesktopIcons 1.0 DesktopIcons.qml

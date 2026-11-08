@@ -59,7 +59,7 @@ Item {
             } 
 
             StatusButton { 
-                id: "powerProfileButton"; 
+                id: powerProfileButton; 
                 icon: PowerProfiles.icon; 
                 name: "PowerProfileButton";
                 onClicked: PowerProfiles.switchProfile();
@@ -69,7 +69,7 @@ Item {
                 icon: Audio.icon; 
                 name: "volume"; 
                 onClicked: Audio.toggleMute(); 
-                id: "volumeStatusBarButton";
+                id: volumeStatusBarButton;
                 height: 50
             }
         }

@@ -16,10 +16,18 @@ Item {
         return ""
     }
 
+    // pactl emits several "sink" events per volume step; coalesce them into one refresh.
     function updateAudioState() {
-        volumeProc.running = true
-        muteProc.running = true
-        muteStatusProc.running = true
+        updateDebounce.restart()
+    }
+
+    Timer {
+        id: updateDebounce
+        interval: 40
+        onTriggered: {
+            if (!volumeProc.running) volumeProc.running = true
+            if (!muteStatusProc.running) muteStatusProc.running = true
+        }
     }
 
     Process {
@@ -58,18 +66,6 @@ Item {
         stdout: SplitParser {
             onRead: data => {
                 root.muted = data.includes("yes")
-            }
-        }
-    }
-
-    Process {
-        id: muteProc
-        command: ["pactl", "get-sink-mute", "@DEFAULT_SINK@"]
-
-        stdout: SplitParser {
-            onRead: data => {
-                root.muted = data.includes("yes")
-                //console.log(root.muted)
             }
         }
     }

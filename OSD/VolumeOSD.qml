@@ -15,10 +15,23 @@ Item {
 
     property bool wantShown: false
     property bool isFullscreen: false
+    // false: showing volume, true: showing brightness (same OSD, different icons/value)
+    property bool brightnessMode: false
 
+    // Fullscreen only counts if the *active workspace* has a fullscreen window and that
+    // window is the focused one. Asking Hyprland directly avoids two problems of the old
+    // check: the stale "active toplevel" left over after switching to an empty workspace,
+    // and reading the toplevel before its refresh had finished.
     function updateFullscreenState() {
-        Hyprland.refreshToplevels()
-        isFullscreen = Hyprland.activeToplevel?.lastIpcObject?.fullscreen === 2 ? true : false
+        if (!fullscreenProc.running) fullscreenProc.running = true
+    }
+
+    Process {
+        id: fullscreenProc
+        command: ["sh", "-c", "jq -n --argjson w \"$(hyprctl -j activeworkspace)\" --argjson a \"$(hyprctl -j activewindow)\" '($w.hasfullscreen == true) and ($a.fullscreen == 2)'"]
+        stdout: StdioCollector {
+            onStreamFinished: osdController.isFullscreen = text.trim() === "true"
+        }
     }
 
     LazyLoader {
@@ -27,7 +40,11 @@ Item {
 
         PanelWindow {
             id: panelRoot
-            anchors { left: true; right: true; top: true; bottom: true }
+            // Only as big as the strip the pill slides through (not full-screen), so each
+            // animation frame only damages/recomposites this small area.
+            anchors { top: true }
+            implicitWidth:       root.implicitWidth
+            implicitHeight:      120   // shown margin (<= ~40) + pill (40) + spring overshoot
             WlrLayershell.layer: WlrLayer.Overlay
             exclusionMode:       ExclusionMode.Ignore
             mask:                Region {}
@@ -60,6 +77,12 @@ Item {
                 Connections {
                     target: osdController
                     function onWantShownChanged() { root.applyState() }
+                }
+
+                // The fullscreen check is asynchronous: re-apply once its result lands.
+                Connections {
+                    target: osdController
+                    function onIsFullscreenChanged() { root.applyState() }
                 }
 
                 Connections {
@@ -98,7 +121,7 @@ Item {
                     anchors.left: root.left
 
                     Text {
-                        text: Audio.muted ? '' : ''
+                        text: osdController.brightnessMode ? "󰃞" : Audio.muted ? '' : ''
                         anchors.centerIn: parent
                         font.family: 'JetBrainsMono Nerd Font'
                         font.pixelSize: 16
@@ -128,7 +151,8 @@ Item {
                             Rectangle {
                                 height: parent.height
                                 radius: parent.radius
-                                width:  Audio.muted ? 0 : parent.width * Audio.volume / 100
+                                width:  osdController.brightnessMode ? parent.width * Brightness.percent / 100
+                                       : (Audio.muted ? 0 : parent.width * Audio.volume / 100)
                                 color:  Theme.text
 
                                 Behavior on width {
@@ -168,7 +192,7 @@ Item {
                     anchors.right: root.right
 
                     Text {
-                        text: Audio.muted ? '' : ''
+                        text: osdController.brightnessMode ? "󰃠" : Audio.muted ? '' : ''
                         anchors.centerIn: parent
                         font.family: 'JetBrainsMono Nerd Font'
                         font.pixelSize: 16
@@ -206,13 +230,39 @@ Item {
         osdLoader.active = true
     }
 
+    // Leading-edge throttle: play right away, then ignore changes for a moment so
+    // holding the key doesn't spawn a paplay process per step.
+    Timer {
+        id: soundCooldown
+        interval: 50
+    }
+
+    function playVolumeSound() {
+        if (soundCooldown.running) return
+        soundCooldown.start()
+        Quickshell.execDetached(["paplay", `/usr/share/sounds/${Theme.sound_theme}/stereo/audio-volume-change.oga`])
+    }
+
     Connections {
         target: Audio
         function onVolumeChanged() {
+            osdController.brightnessMode = false
             updateFullscreenState()
             osdController.show()
-            Quickshell.execDetached(["paplay", `/usr/share/sounds/${Theme.sound_theme}/stereo/audio-volume-change.oga`])
+            playVolumeSound()
         }
-        function onMutedChanged() { osdController.show() }
+        function onMutedChanged() {
+            osdController.brightnessMode = false
+            osdController.show()
+        }
+    }
+
+    Connections {
+        target: Brightness
+        function onAdjusted() {
+            osdController.brightnessMode = true
+            updateFullscreenState()
+            osdController.show()
+        }
     }
 }
