@@ -136,14 +136,14 @@ Row {
             label: "Previous",
             icon: "",
             type: "command",
-            action: ["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \"-1\" })"],
+            action: ["hyprctl", "dispatch", "Binds[\"workspace-prev\"]"],
             shortcut: "workspace-prev"
         },
         "Next Workspace": {
             label: "Next",
             type: "command",
             icon: "",
-            action: ["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \"+1\" })"],
+            action: ["hyprctl", "dispatch", "Binds[\"workspace-next\"]"],
             shortcut: "workspace-next"
         },
         "Tiled Workspace": {
@@ -180,7 +180,7 @@ Row {
             label: "Close",
             icon: "󰅙",
             type: "command",
-            action: ["hyprctl", "dispatch", "hl.dsp.window.close()"],
+            action: ["hyprctl", "dispatch", "Binds[\"close-window\"]"],
             shortcut: "close-window"
         },
         "Move to New Workspace": {
@@ -207,13 +207,13 @@ Row {
         "Toggle Floating": {
             label: "Toggle Floating",
             type: "command",
-            action: ["hyprctl", "dispatch", "hl.dsp.window.float({ action = \"toggle\" })"],
+            action: ["hyprctl", "dispatch", "Binds[\"toggle-float\"]"],
             shortcut: "toggle-float"
         },
         "Enable Pseudotiling": {
             label: "Pseudotiling",
             type: "command",
-            action: ["hyprctl", "dispatch", "hl.dsp.window.pseudo()"],
+            action: ["hyprctl", "dispatch", "Binds[\"toggle-pseudo\"]"],
             shortcut: "toggle-pseudo"
         },
         "Toggle Dock": {

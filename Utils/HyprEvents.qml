@@ -15,6 +15,8 @@ Singleton {
 
     // workspace id -> unique window classes in that workspace, e.g. { "1": ["kitty", "codium"] }
     property var workspaceApps: ({})
+    // workspace id -> true if it has at least one tiled (non-floating) window
+    property var workspaceTiled: ({})
 
     Process {
         id: clientsProc
@@ -22,6 +24,7 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: {
                 var map = {}
+                var tiled = {}
                 try {
                     var clients = JSON.parse(text)
                     for (var i = 0; i < clients.length; i++) {
@@ -29,9 +32,11 @@ Singleton {
                         if (!c.mapped || c.workspace.id <= 0 || c["class"] === "") continue
                         var list = map[c.workspace.id] || (map[c.workspace.id] = [])
                         if (list.indexOf(c["class"]) === -1) list.push(c["class"])
+                        if (!c.floating) tiled[c.workspace.id] = true
                     }
                 } catch (e) {}
                 root.workspaceApps = map
+                root.workspaceTiled = tiled
             }
         }
     }

@@ -11,8 +11,11 @@ Scope {
 
     readonly property string appName: "USB Devices"   // Notifications.qml skips its default sound for this
 
+    property var notifications: null     // the Notifications component, for udiskieState
+
     property var block: ({})
     property var names: ({})      // DEVPATH -> device name, filled on "add"
+    property var storage: ({})    // DEVPATH -> true for mass-storage drives, filled on "add"
 
     Process {
         command: ["stdbuf", "-oL", "udevadm", "monitor", "--udev", "--subsystem-match=usb", "--property"]
@@ -50,10 +53,28 @@ Scope {
         // udev drops the model/vendor info from "remove" events, so remember the name from
         // when the device was added and reuse it on unplug.
         var added = b.ACTION === "add"
-        if (added && name !== "") names[b.DEVPATH] = name
+        // Mass-storage drives (USB interface class 08, e.g. ":080650:") are handled by udiskie,
+        // whose "mounted" / "unmounted" notifications are the ones wanted for them; skip them
+        // here. udev drops the interface list from "remove" events, so remember it from "add".
+        if (added) {
+            storage[b.DEVPATH] = (b.ID_USB_INTERFACES || "").indexOf(":08") !== -1
+            if (name !== "") names[b.DEVPATH] = name
+        }
+        var isStorage = storage[b.DEVPATH] === true
         if (!added) {
             name = names[b.DEVPATH] || name
             delete names[b.DEVPATH]
+            delete storage[b.DEVPATH]
+        }
+        if (isStorage) {
+            // Yanking a mounted drive: udiskie only says "Device removed" (silenced), never
+            // "unmounted". Send that message ourselves, as udiskie, so Notifications gives it the
+            // unmount sound - unless the drive was already unmounted properly first.
+            if (!added && notifications && notifications.udiskieState !== "unmounted") {
+                Quickshell.execDetached(["notify-send", "-a", "udiskie", "-i", "drive-removable-media-usb",
+                    "Device unmounted", name + " unmounted"])      // same wording as udiskie's own message
+            }
+            return
         }
         if (name === "") name = "USB device " + (b.PRODUCT || "")
 

@@ -27,5 +27,10 @@ QtObject {
         { name: "Discord",    icon: "discord", command: ["discord"],  x: columns-2, y: 0 },
         { name: "Spotify",    icon: "spotify", command: ["flatpak", "run", "com.spotify.Client"],  x: columns-2, y: 1 },
         { name: "Files",    icon: "nautilus", command: ["nautilus"],  x: columns-2, y: 2 },
+
+
+        { name: "Steam",    icon: "steam", command: ["steam"],  x: columns-3, y: 0 },
+        { name: "Telegram",    icon: "telegram", command: ["flatpak", "run", "org.telegram.desktop"],  x: columns-3, y: 1 },
+        { name: "CS2",    icon: "counter-strike-2", command: ["steam", "steam://rungameid/730"],  x: columns-3, y: 2 },
     ]
 }

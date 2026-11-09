@@ -9,7 +9,8 @@ Singleton {
         "brave-browser": "brave-desktop",
         "codium": "vscodium",
         "code": "vscode",
-        "kitty": "terminal"
+        "kitty": "terminal",
+        "cs2": "counter-strike-2"
     })
 
     // Reading applications.values makes callers re-evaluate once desktop entries load

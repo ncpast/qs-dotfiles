@@ -15,12 +15,15 @@ Scope {
     id: root
 
     readonly property int defaultTimeout: 5000   // ms, used when the app doesn't ask for one
+    readonly property int criticalTimeout: 10000 // ms, urgent notifications with no timeout of their own
+    readonly property int maxTimeout: 10000      // ms, upper limit for app-requested timeouts
     readonly property int cardWidth: 400
     readonly property int gap: 12                // same distance from the top bar and from the right edge
     readonly property int staggerMs: 80          // delay between cards that arrive together
 
     readonly property int overshootRoom: 60      // window space left of the cards for the bounce
 
+    property string udiskieState: ""             // "mounted" | "unmounted" | "" (last udiskie notification)
     property double nextSlot: 0                  // earliest start time for the next entrance
 
     // Sound from the theme set in Theme.sound_theme (same one the volume OSD uses).
@@ -32,6 +35,9 @@ Scope {
         if (soundCooldown.running) return
         soundCooldown.start()
         var name = n.urgency === NotificationUrgency.Critical ? "dialog-warning" : "message-new-instant"
+        // udiskie: a drive was unmounted / is safe to remove -> its own sound
+        if (n.appName === "udiskie" && (n.summary || "").toLowerCase().indexOf("unmounted") !== -1)
+            name = "power-unplug"
         Quickshell.execDetached(["paplay", `/usr/share/sounds/${Theme.sound_theme}/stereo/${name}.oga`])
     }
 
@@ -44,6 +50,21 @@ Scope {
         keepOnReload: false
 
         onNotification: n => {
+            // udiskie also announces "Device added" / "Device removed" for every drive; UsbMonitor
+            // already reports those (for all USB devices), so drop udiskie's copies. Its
+            // "Device mounted" / "Device unmounted" messages are the useful ones and stay.
+            if (n.appName === "udiskie") {
+                var t = (n.summary || "").toLowerCase()
+                if (t.indexOf("added") !== -1 || t.indexOf("removed") !== -1) return
+                // remember the last mount state, so UsbMonitor knows whether a drive that was
+                // just yanked had already been unmounted (udiskie says nothing in that case)
+                if (t.indexOf("unmounted") !== -1) root.udiskieState = "unmounted"
+                else if (t.indexOf("mounted") !== -1) root.udiskieState = "mounted"
+            }
+            // Nautilus / gvfs: "<drive> can now be safely unplugged / removed". udiskie's
+            // "Device unmounted" already covers this, so drop it.
+            var text = ((n.summary || "") + " " + (n.body || "")).toLowerCase()
+            if (text.indexOf("safely") !== -1 && (text.indexOf("unplug") !== -1 || text.indexOf("remov") !== -1)) return
             n.tracked = true
             root.playSound(n)
         }
@@ -160,8 +181,8 @@ Scope {
                     height: content.implicitHeight + 28
                     radius: 22
                     color: Qt.rgba(Theme.background1.r, Theme.background1.g, Theme.background1.b, 0.68)
-                    border.width: 1
-                    border.color: Qt.rgba(Theme.border_light.r, Theme.border_light.g, Theme.border_light.b, 0.8)
+                    //border.width: 1
+                    //border.color: Qt.rgba(Theme.border_light.r, Theme.border_light.g, Theme.border_light.b, 0.8)
 
                     // not drawn at all until its entrance starts
                     visible: card.shown || card.leaving
@@ -188,7 +209,7 @@ Scope {
                     // on during the slide animations costs frames.
                     layer.enabled: mouse.containsMouse || mouse.pressed
                     layer.effect: MultiEffect {
-                        brightness: mouse.pressed ? -0.25 : (mouse.containsMouse ? 0.12 : 0)
+                        brightness: mouse.pressed ? -0.2 : (mouse.containsMouse ? 0.1 : 0)
                         Behavior on brightness { NumberAnimation { duration: 100; easing.type: Easing.InOutQuad } }
                     }
 
@@ -215,6 +236,9 @@ Scope {
                             asynchronous: true
                             source: {
                                 var n = card.modelData
+                                // udiskie picks a different icon per event/device (and sometimes one the
+                                // theme lacks); use one standard drive icon for all of its messages
+                                if (n.appName === "udiskie") return AppIcons.resolve("drive-removable-media-usb")
                                 if (n.image) return n.image
                                 if (n.appIcon && (n.appIcon.startsWith("/") || n.appIcon.indexOf("://") !== -1))
                                     return n.appIcon.startsWith("/") ? "file://" + n.appIcon : n.appIcon
@@ -283,12 +307,14 @@ Scope {
                         }
                     }
 
-                    // Auto-dismiss once it has arrived; hovering pauses it. Urgent ones
-                    // stay until clicked.
+                    // Auto-dismiss once it has arrived; hovering pauses it.
                     Timer {
+                        // App-requested timeout (seconds) is honoured but capped, so a card never
+                        // lingers; with none requested: 5 s, or 10 s for urgent ones.
                         interval: card.modelData.expireTimeout > 0
-                            ? card.modelData.expireTimeout * 1000 : root.defaultTimeout
-                        running: card.shown && !card.leaving && !mouse.containsMouse && !card.critical
+                            ? Math.min(card.modelData.expireTimeout * 1000, root.maxTimeout)
+                            : (card.critical ? root.criticalTimeout : root.defaultTimeout)
+                        running: card.shown && !card.leaving && !mouse.containsMouse
                         onTriggered: card.close("expire")
                     }
                 }

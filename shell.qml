@@ -13,8 +13,8 @@ ShellRoot {
     Visual {}
     VolumeOSD {}
     Desktop {}
-    Notifications {}
-    UsbMonitor {}
+    Notifications { id: notifications }
+    UsbMonitor { notifications: notifications }
     
     EmptyBar {
         anchors { bottom: true; left: true; right: true }
