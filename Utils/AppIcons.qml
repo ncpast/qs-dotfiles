@@ -27,7 +27,7 @@ Singleton {
         if (entry && entry.icon) names.push(entry.icon)
         names.push(name, name.toLowerCase())
         for (var i = 0; i < names.length; i++) {
-            var path = Quickshell.iconPath(names[i], true)
+            var path = Quickshell.iconPath(names[i], true) 
             if (path !== "") return path
         }
         return ""

@@ -100,7 +100,7 @@ Row {
             label: "Lock Screen",
             icon: "",
             type: "command",
-            action: ["hyprlock"],
+            action: ["qs", "ipc", "call", "lock", "lock"],
         },
         "Log Out": {
             label: "Log Out",
@@ -119,11 +119,6 @@ Row {
             label: "Reboot",
             icon: "",
             type: "command",
-            action: ["systemctl", "reboot"]
-        },
-        "Power Saver Profile": {
-            label: "Power Saver",
-            type: "toggle",
             action: ["systemctl", "reboot"]
         },
         "New Workspace": {

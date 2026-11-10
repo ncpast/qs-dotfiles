@@ -8,6 +8,7 @@ import "./Popups/"
 import "./Theme"
 import "./OSD"
 import "./Notifications"
+import "./Lock"
 
 ShellRoot {
     Visual {}
@@ -15,6 +16,7 @@ ShellRoot {
     Desktop {}
     Notifications { id: notifications }
     UsbMonitor { notifications: notifications }
+    Lock {}
     
     EmptyBar {
         anchors { bottom: true; left: true; right: true }

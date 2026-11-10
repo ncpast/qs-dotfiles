@@ -1,81 +1,39 @@
 pragma Singleton
 import QtQuick
-import Quickshell.Io
-import "../Utils"
+import Quickshell.Services.UPower as UP
 
+// Power profile state for the bar. Uses Quickshell's built-in power-profiles-daemon
+// support (D-Bus inside quickshell), so there's no `gdbus monitor` child process that
+// could be orphaned when quickshell is killed.
 Item {
     id: root
 
-    readonly property var profiles: {
-        "power-saver": 0,
-        "balanced":    1,
-        "performance": 2
+    // cycle order; performance is skipped on machines that don't offer it
+    readonly property var order: UP.PowerProfiles.hasPerformanceProfile
+        ? [UP.PowerProfile.PowerSaver, UP.PowerProfile.Balanced, UP.PowerProfile.Performance]
+        : [UP.PowerProfile.PowerSaver, UP.PowerProfile.Balanced]
+
+    readonly property int profile: UP.PowerProfiles.profile
+    readonly property int index: order.indexOf(profile)
+    readonly property string powerProfile: {
+        switch (profile) {
+            case UP.PowerProfile.PowerSaver:  return "power-saver"
+            case UP.PowerProfile.Balanced:    return "balanced"
+            case UP.PowerProfile.Performance: return "performance"
+            default:                          return ""
+        }
     }
-    property int index: 2;
-    property string powerProfile: '';
-    // property string bufferProfile: '';
 
     readonly property string icon: {
-        //if (powerProfile != bufferProfile) return '';
-
-        switch(powerProfile) {
-            case 'power-saver':
-                return '󰌪';
-            case 'balanced':
-                return '';
-            case 'performance':
-                return '󰓅';
-            default:
-                return 'NA';
+        switch (powerProfile) {
+            case "power-saver": return '󰌪'
+            case "balanced":    return ''
+            case "performance": return '󰓅'
+            default:            return 'NA'
         }
     }
-    
+
     function switchProfile() {
-        const nextIndex = (index + 1) % 3
-        const nextProfile = Object.keys(profiles).find(key => profiles[key] === nextIndex)
-        index = nextIndex
-        powerProfile = nextProfile
-        writeProfile.running = true
-    }
-
-    Process {
-        id: writeProfile
-        command: ["powerprofilesctl", "set", powerProfile]
-    }
-
-    Process {
-        id: update
-        command: ["powerprofilesctl", "get"]
-        running: true
-
-        stdout: SplitParser {
-            onRead: data => {
-                powerProfile = data;
-                // bufferProfile = powerProfile;
-                index = profiles[data];
-            }
-        }
-    }
-
-    Process {
-        id: monitor
-        command: [
-            "gdbus", "monitor",
-            "--system",
-            "--dest", "net.hadess.PowerProfiles",
-            "--object-path", "/net/hadess/PowerProfiles"
-        ]
-        running: true
-
-        stdout: SplitParser {
-            onRead: data => {
-                if (!data.includes("ActiveProfile")) return
-                const match = data.match(/'ActiveProfile':\s*<'([^']+)'>/)
-                //console.log("match:", match ? match[1] : "no match")
-
-                powerProfile = match[1];
-                index = profiles[powerProfile];
-            }
-        }
+        UP.PowerProfiles.profile = order[(Math.max(index, 0) + 1) % order.length]
     }
 }

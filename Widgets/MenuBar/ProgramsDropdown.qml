@@ -54,6 +54,15 @@ PanelWindow {
             Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.window.close({ window = \"class:(?i)" + cls + "\" })"])
     }
 
+    // Tray items that should not be listed (matched against id / title, case-insensitive)
+    readonly property var hiddenPrograms: ["udiskie"]
+    function isHidden(item) {
+        var key = ((item.id || "") + " " + (item.title || "")).toLowerCase()
+        for (var i = 0; i < hiddenPrograms.length; i++)
+            if (key.indexOf(hiddenPrograms[i]) !== -1) return true
+        return false
+    }
+
     Rectangle {
         anchors.fill: parent
         color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.8)
@@ -69,7 +78,7 @@ PanelWindow {
 
             // Empty state
             Item {
-                visible: SystemTray.items.values.length === 0
+                visible: programRepeater.count === 0
                 width: menuColumn.width
                 height: visible ? emptyLabel.implicitHeight + 10 : 0
 
@@ -89,7 +98,9 @@ PanelWindow {
 
             Repeater {
                 id: programRepeater
-                model: SystemTray.items
+                model: ScriptModel {
+                    values: SystemTray.items.values.filter(item => !programsPopup.isHidden(item))
+                }
 
                 Rectangle {
                     id: row

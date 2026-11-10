@@ -260,7 +260,7 @@ Scope {
 
                     // HoverHandler (unlike MouseArea.containsMouse) keeps reporting hover while
                     // the pointer is over the child buttons.
-                    HoverHandler { id: cardHover }
+                    HoverHandler { id: cardHover } 
 
                     // iOS-style feedback: lighter on hover, darker + smaller when pressed
                     scale: mouse.pressed ? 0.9 : 1.0
