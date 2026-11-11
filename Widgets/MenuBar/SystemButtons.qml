@@ -68,7 +68,8 @@ Row {
             label: "Terminal",
             icon: "",
             type: "command",
-            action: ["sh", "-c", "cd ~ && kitty"],
+            // same as SUPER+Q: picks the focus-mode kitty config on a focus-mode workspace
+            action: ["hyprctl", "dispatch", "Binds[\"terminal\"]"],
             shortcut: "terminal"
         },
         "File Explorer": {
@@ -225,7 +226,18 @@ Row {
         },
         "Focus Mode": {
             label: "Focus Mode",
-            type: "setter"
+            type: "setter",
+            // global: every workspace
+            toggled: FocusMode.global,
+            action: () => { FocusMode.toggleGlobal() }
+        },
+        "Focused Workspace": {
+            label: "Focused Workspace",
+            type: "setter",
+            icon: "󰈈",
+            // local: only the workspace you're on (shows that workspace's own state)
+            toggled: FocusMode.isFocused(FocusMode.currentWorkspace),
+            action: () => { FocusMode.toggleCurrent() }
         },
         "Automatic Tiling": {
             label: "Automatic Tiling",
@@ -322,7 +334,7 @@ Row {
     Dropdown {
         id: workspaceDropdown
         property var content: ["Previous Workspace", "Next Workspace", "New Workspace",
-        "br", "Tiled Workspace", "Floating Workspace", "br", "Workspace Overview"]
+        "br", "Tiled Workspace", "Floating Workspace", "br", "Focused Workspace", "Workspace Overview"]
         property var category: "Workspace"
     }
 

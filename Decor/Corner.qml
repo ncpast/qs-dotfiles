@@ -1,5 +1,6 @@
 import Quickshell
 import QtQuick
+import QtQuick.Shapes
 import Quickshell.Wayland
 import "../Theme"
 
@@ -15,12 +16,9 @@ PanelWindow {
     implicitHeight: radius
     //exclusionMode: ExclusionMode.Ignore
 
-    Canvas {
+    Shape {
         anchors.fill: parent
-        smooth: true
-        antialiasing: true
-        renderTarget: Canvas.FramebufferObject
-        renderStrategy: Canvas.Cooperative
+        preferredRendererType: Shape.CurveRenderer
 
         transform: Rotation {
             angle: cornerRotation
@@ -28,17 +26,20 @@ PanelWindow {
             origin.y: height / 2
         }
 
-        onPaint: {
-            var ctx = getContext("2d")
-            ctx.clearRect(0, 0, width, height)
-            ctx.fillStyle = curveColor
-            ctx.beginPath()
-            ctx.moveTo(width, 0)
-            ctx.lineTo(width, height)
-            ctx.lineTo(0, height)
-            ctx.arc(0, 0, width, Math.PI * 0.5, 0, true)
-            ctx.closePath()
-            ctx.fill()
+        // Square with a quarter circle (centred on the top-left) cut out
+        ShapePath {
+            fillColor: curveColor
+            strokeColor: "transparent"
+            strokeWidth: 0
+
+            startX: corner.width; startY: 0
+            PathLine { x: corner.width; y: corner.height }
+            PathLine { x: 0;            y: corner.height }
+            PathArc {
+                x: corner.width; y: 0
+                radiusX: corner.width; radiusY: corner.height
+                direction: PathArc.Counterclockwise
+            }
         }
     }
 }

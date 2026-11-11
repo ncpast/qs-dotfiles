@@ -188,52 +188,69 @@ Item {
             readonly property real restY: parent.height - height - parent.height * 0.06
             readonly property real centerY: (parent.height - height) / 2
             y: restY + (centerY - restY) * t
-            scale: 1 + 0.2 * t
+            readonly property real typingZoom: 1.2      // whole box, while typing
+            scale: 1 + (typingZoom - 1) * t
 
-            // Avatar (~/.face), initial letter on an accent circle as a fallback
+            // Avatar (~/.face), initial letter on an accent circle as a fallback.
+            // Shrinking keeps it sharp, enlarging blurs it, so it's rendered at its biggest size and
+            // scaled down from there. The outer item takes the size it shows at, so the name and
+            // field below move with it.
             Item {
+                id: avatarBox
                 anchors.horizontalCenter: parent.horizontalCenter
-                width: 64
-                height: 64
+                readonly property real restSize: 64     // px at rest
+                readonly property real zoom: 1.5        // size while typing, as a multiple of restSize
+                readonly property real fullSize: restSize * zoom * loginBox.typingZoom
+                readonly property real shownSize: restSize * (1 + (zoom - 1) * loginBox.t)
+                width: shownSize
+                height: width
 
-                Rectangle {
-                    anchors.fill: parent
-                    radius: width / 2
-                    color: Theme.accent
-                    visible: avatar.status !== Image.Ready
+                Item {
+                    width: avatarBox.fullSize
+                    height: avatarBox.fullSize
+                    anchors.centerIn: parent
+                    scale: avatarBox.shownSize / avatarBox.fullSize
 
-                    Text {
-                        anchors.centerIn: parent
-                        text: surface.lockRoot.displayName.charAt(0).toUpperCase()
-                        color: "white"
-                        font.family: "Inter"
-                        font.weight: Font.Bold
-                        font.pixelSize: 28
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: width / 2
+                        color: Theme.accent
+                        visible: avatar.status !== Image.Ready
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: surface.lockRoot.displayName.charAt(0).toUpperCase()
+                            color: "white"
+                            font.family: "Inter"
+                            font.weight: Font.Bold
+                            font.pixelSize: parent.width * 0.44
+                        }
                     }
-                }
 
-                Image {
-                    id: avatar
-                    anchors.fill: parent
-                    source: "file://" + Quickshell.env("HOME") + "/.face"
-                    sourceSize: Qt.size(128, 128)
-                    fillMode: Image.PreserveAspectCrop
-                    cache: false
-                    visible: false
-                }
+                    Image {
+                        id: avatar
+                        anchors.fill: parent
+                        source: "file://" + Quickshell.env("HOME") + "/.face"
+                        // render size at up to 2x screen scale
+                        sourceSize: Qt.size(avatarBox.fullSize * 2, avatarBox.fullSize * 2)
+                        fillMode: Image.PreserveAspectCrop
+                        cache: false
+                        visible: false
+                    }
 
-                Rectangle {
-                    id: avatarMask
-                    anchors.fill: parent
-                    radius: width / 2
-                    visible: false
-                }
+                    Rectangle {
+                        id: avatarMask
+                        anchors.fill: parent
+                        radius: width / 2
+                        visible: false
+                    }
 
-                OpacityMask {
-                    anchors.fill: parent
-                    source: avatar
-                    maskSource: avatarMask
-                    visible: avatar.status === Image.Ready
+                    OpacityMask {
+                        anchors.fill: parent
+                        source: avatar
+                        maskSource: avatarMask
+                        visible: avatar.status === Image.Ready
+                    }
                 }
             }
 
@@ -250,7 +267,7 @@ Item {
             Rectangle {
                 id: field
                 anchors.horizontalCenter: parent.horizontalCenter
-                width: 200
+                width: 160
                 height: 30
                 radius: height / 2
                 color: "transparent"
@@ -265,6 +282,18 @@ Item {
                     anchors.fill: parent
                     opacity: loginBox.tc
                     visible: opacity > 0
+
+                    // the shadow is taken from the composited (opaque) glass pill, so it only
+                    // shows around the outside and fades together with the glass
+                    layer.enabled: visible
+                    layer.smooth: true
+                    layer.effect: MultiEffect {
+                        shadowEnabled: true
+                        shadowColor: Theme.shadow_color
+                        shadowBlur: Theme.shadow_blur
+                        blurMax: Theme.shadow_blur_max
+                        shadowVerticalOffset: Theme.shadow_offset
+                    }
 
                     ShaderEffectSource {
                         id: fieldGlassSource
@@ -317,9 +346,9 @@ Item {
                     radius: field.radius
                     opacity: loginBox.tc
                     visible: opacity > 0
+                    border.width: 0.5
                     color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.8)
-                    border.width: 1
-                    border.color: Qt.rgba(Theme.background1.r, Theme.background1.g, Theme.background1.b, 1)
+                    border.color: Qt.rgba(Theme.background2.r, Theme.background2.g, Theme.background2.b, 1)
                 }
 
                 SequentialAnimation {
@@ -363,7 +392,7 @@ Item {
                     color: Theme.text
                     selectionColor: Qt.rgba(1, 1, 1, 0.3)
                     font.family: "Inter"
-                    font.pixelSize: 12
+                    font.pixelSize: 8
                     font.letterSpacing: 2
 
                     text: surface.lockRoot.password
@@ -431,6 +460,11 @@ Item {
                                 layer.smooth: true
                                 layer.effect: MultiEffect {
                                     brightness: buttonBg.shade
+                                    shadowEnabled: true
+                                    shadowColor: Theme.shadow_color
+                                    shadowBlur: Theme.shadow_blur
+                                    blurMax: Theme.shadow_blur_max
+                                    shadowVerticalOffset: Theme.shadow_offset
                                 }
 
                                 // Frosted glass: the wallpaper right behind the button, blurred and

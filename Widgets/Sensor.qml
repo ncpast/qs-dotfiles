@@ -2,6 +2,7 @@ import Quickshell
 import QtQuick
 import Quickshell.Services.UPower
 import QtQuick.Controls
+import QtQuick.Shapes
 import Quickshell.Io
 import "../Utils"
 import "../Theme"
@@ -109,43 +110,48 @@ Row {
 
             onProgressChanged: animatedProgress = progress
 
-            Canvas {
-                id: canvas
+            Shape {
+                id: ring
                 anchors.fill: parent
-                antialiasing: true
+                preferredRendererType: Shape.CurveRenderer
 
-                onPaint: {
-                    var ctx = getContext("2d")
-                    ctx.clearRect(0, 0, width, height)
+                readonly property real cx: width / 2
+                readonly property real cy: height / 2
+                readonly property real r:  (width / 2) - root.thickness
 
-                    var cx = width / 2
-                    var cy = height / 2
-                    var r  = (width / 2) - root.thickness
+                // Track
+                ShapePath {
+                    strokeColor: root.trackColor
+                    strokeWidth: root.thickness
+                    fillColor: "transparent"
 
-                    var startAngle = -Math.PI / 2
-                    var endAngle   = startAngle + (Math.PI * 2 * root.animatedProgress)
-
-                    ctx.beginPath()
-                    ctx.arc(cx, cy, r, 0, Math.PI * 2)
-                    ctx.strokeStyle = root.trackColor
-                    ctx.lineWidth   = root.thickness
-                    ctx.stroke()
-
-                    if (root.animatedProgress > 0) {
-                        ctx.beginPath()
-                        ctx.arc(cx, cy, r, startAngle, endAngle)
-                        ctx.strokeStyle = root.progressColor
-                        ctx.lineWidth   = root.thickness
-                        ctx.lineCap     = "round"
-                        ctx.stroke()
+                    PathAngleArc {
+                        centerX: ring.cx
+                        centerY: ring.cy
+                        radiusX: ring.r
+                        radiusY: ring.r
+                        startAngle: 0
+                        sweepAngle: 360
                     }
                 }
 
-                onWidthChanged:  requestPaint()
-                onHeightChanged: requestPaint()
-            }
+                // Progress
+                ShapePath {
+                    strokeColor: root.animatedProgress > 0 ? root.progressColor : "transparent"
+                    strokeWidth: root.thickness
+                    fillColor: "transparent"
+                    capStyle: ShapePath.RoundCap
 
-            onAnimatedProgressChanged: canvas.requestPaint()
+                    PathAngleArc {
+                        centerX: ring.cx
+                        centerY: ring.cy
+                        radiusX: ring.r
+                        radiusY: ring.r
+                        startAngle: -90
+                        sweepAngle: 360 * root.animatedProgress
+                    }
+                }
+            }
         }
 
     }

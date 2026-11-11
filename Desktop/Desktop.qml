@@ -154,10 +154,15 @@ Variants {
                                 layer.effect: MultiEffect {
                                     brightness: mouse.pressed ? -0.35 : (mouse.containsMouse ? 0.1 : 0)
                                     Behavior on brightness { NumberAnimation { duration: 100; easing.type: Easing.InOutQuad } }
+                                    shadowEnabled: true
+                                    shadowColor: Theme.shadow_color
+                                    shadowBlur: Theme.shadow_blur
+                                    blurMax: Theme.shadow_blur_max
+                                    shadowVerticalOffset: Theme.shadow_offset
                                 }
 
                                 // hover: grow, press: shrink, release: spring back up
-                                scale: mouse.pressed ? 0.9 : (mouse.containsMouse ? 1.1 : 1.0)
+                                scale: mouse.pressed ? 0.95 : (mouse.containsMouse ? 1.05 : 1.0)
                                 Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
                                 }
                             }
@@ -172,8 +177,15 @@ Variants {
                                 maximumLineCount: 1
                                 font.family: "Inter"
                                 font.weight: 500
-                                style: Text.Outline
-                                styleColor: Qt.rgba(0, 0, 0, 0.4)
+
+                                layer.enabled: true
+                                layer.effect: MultiEffect {
+                                    shadowEnabled: true
+                                    shadowColor: Theme.text_shadow_color
+                                    shadowBlur: Theme.text_shadow_blur
+                                    blurMax: Theme.text_shadow_blur_max
+                                    shadowVerticalOffset: Theme.text_shadow_offset
+                                }
                             }
                         }
 

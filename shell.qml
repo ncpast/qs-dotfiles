@@ -14,6 +14,7 @@ ShellRoot {
     Visual {}
     VolumeOSD {}
     Desktop {}
+    FocusBackdrop {}
     Notifications { id: notifications }
     UsbMonitor { notifications: notifications }
     Lock {}
@@ -50,8 +51,8 @@ ShellRoot {
     // Corner { anchors { bottom: true; left: true  } cornerRotation: 90  }
     // Corner { anchors { bottom: true; right: true } cornerRotation: 0   } 
 
-    Corner { anchors { top: true;    left: true  } cornerRotation: 180; curveColor: "black"; exclusionMode: ExclusionMode.Ignore; WlrLayershell.layer: WlrLayer.Overlay; radius: 14 }
-    Corner { anchors { top: true;    right: true } cornerRotation: 270; curveColor: "black"; exclusionMode: ExclusionMode.Ignore; WlrLayershell.layer: WlrLayer.Overlay; radius: 14 }
-    Corner { anchors { bottom: true; left: true  } cornerRotation: 90;  curveColor: "black"; exclusionMode: ExclusionMode.Ignore; WlrLayershell.layer: WlrLayer.Overlay; radius: 14 }
-    Corner { anchors { bottom: true; right: true } cornerRotation: 0;   curveColor: "black"; exclusionMode: ExclusionMode.Ignore; WlrLayershell.layer: WlrLayer.Overlay; radius: 14 }
+    Corner { anchors { top: true;    left: true  } cornerRotation: 180; curveColor: "black"; exclusionMode: ExclusionMode.Ignore; WlrLayershell.layer: WlrLayer.Overlay; radius: 14; }
+    Corner { anchors { top: true;    right: true } cornerRotation: 270; curveColor: "black"; exclusionMode: ExclusionMode.Ignore; WlrLayershell.layer: WlrLayer.Overlay; radius: 14; }
+    Corner { anchors { bottom: true; left: true  } cornerRotation: 90;  curveColor: "black"; exclusionMode: ExclusionMode.Ignore; WlrLayershell.layer: WlrLayer.Overlay; radius: 14; visible: !Theme.monotone }
+    Corner { anchors { bottom: true; right: true } cornerRotation: 0;   curveColor: "black"; exclusionMode: ExclusionMode.Ignore; WlrLayershell.layer: WlrLayer.Overlay; radius: 14; visible: !Theme.monotone }
 }
