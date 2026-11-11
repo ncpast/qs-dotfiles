@@ -165,6 +165,7 @@ Variants {
                                 height: DesktopIcons.iconSize
                                 readonly property url src: AppIcons.resolve(cell.modelData.icon)
                                 readonly property bool tinted: Theme.tintDesktopIcons
+                                readonly property bool dark: Theme.darkModeIcons && !tinted && (cell.modelData.darkMode ?? true)
 
                                 layer.enabled: true
                                 layer.effect: MultiEffect {
@@ -268,8 +269,8 @@ Variants {
                                     }
                                 }
 
-                                // The icon itself. Normal mode: as is. Tinted mode: only the texture for
-                                // the shader below.
+                                // The icon itself. Normal mode: as is. Tinted / dark mode: only the
+                                // texture for the shaders below.
                                 Image {
                                     id: iconImg
                                     anchors.fill: parent
@@ -277,7 +278,18 @@ Variants {
                                     smooth: true
                                     asynchronous: true
                                     source: iconItem.src
-                                    visible: !iconItem.tinted
+                                    visible: !iconItem.tinted && !iconItem.dark
+                                }
+
+                                // Dark mode (iOS style): white tiles repainted dark, glyph kept
+                                // (shaders/dark_icon.frag)
+                                ShaderEffect {
+                                    anchors.fill: parent
+                                    visible: iconItem.dark && iconImg.status === Image.Ready
+                                    property variant source: iconImg
+                                    property color darkColor: Theme.desktop_icon_dark_color
+                                    property real keepWhite: cell.modelData.keepWhite ? 1 : 0
+                                    fragmentShader: Qt.resolvedUrl("shaders/dark_icon.frag.qsb")
                                 }
 
                                 // Tinted mode (iOS style): a dark translucent accent tile with a bright

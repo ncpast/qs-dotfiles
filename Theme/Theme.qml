@@ -9,9 +9,16 @@ QtObject {
     readonly property int   spacer_panel_size: 0 + 8
     property bool leftBarHidden: true
 
+    // Desktop icons in dark mode: white parts of the icons (white symbols, white tiles) become
+    // desktop_icon_dark_color; everything else keeps its colours. Ignored while tintDesktopIcons is on.
+    property bool darkModeIcons: true
+    readonly property color desktop_icon_dark_color: Qt.rgba(30 / 255, 30 / 255, 30 / 255, 1)
+
+
     // Desktop icons as tinted "liquid glass" (iOS style): desaturated, tinted Theme.accent and
     // translucent over the blurred wallpaper behind them.
-    property bool tintDesktopIcons: true
+    property bool tintDesktopIcons: false
+
     readonly property real desktop_icon_tint_opacity: 1     // how visible the tinted icon is, 0..1
     readonly property real desktop_icon_tile_opacity: 0.55    // dark tile behind the glyph (glass shows through the rest)
     readonly property real desktop_icon_gloss: 0.12           // sheen across the top of the icon, 0..~0.3
