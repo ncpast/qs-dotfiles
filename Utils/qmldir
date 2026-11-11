@@ -7,3 +7,4 @@ singleton HyprEvents 1.0 HyprEvents.qml
 singleton AppIcons 1.0 AppIcons.qml
 
 singleton Brightness 1.0 Brightness.qml
+singleton Wallpaper 1.0 Wallpaper.qml

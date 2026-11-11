@@ -9,6 +9,19 @@ QtObject {
     readonly property int   spacer_panel_size: 0 + 8
     property bool leftBarHidden: true
 
+    // Desktop icons as tinted "liquid glass" (iOS style): desaturated, tinted Theme.accent and
+    // translucent over the blurred wallpaper behind them.
+    property bool tintDesktopIcons: true
+    readonly property real desktop_icon_tint_opacity: 1     // how visible the tinted icon is, 0..1
+    readonly property real desktop_icon_tile_opacity: 0.55    // dark tile behind the glyph (glass shows through the rest)
+    readonly property real desktop_icon_gloss: 0.12           // sheen across the top of the icon, 0..~0.3
+    // the glass always shows the blurred wallpaper behind the icon; this is how strongly it's
+    // frosted over (Theme.background) on top of that: 0 = clear blurred glass, 1 = solid
+    readonly property real desktop_icon_glass_opacity: 0
+    readonly property real desktop_icon_glass_blur: 0.5       // 0..1
+    readonly property real desktop_icon_rim_width: 1      // px, glass edge highlight
+    readonly property real desktop_icon_rim_opacity: 0.5    // brightest (top) part of the rim, 0..1
+
     // Focus mode (Theme/FocusMode.qml): while the focused workspace is in focus mode,
     // everything goes monotone black & white; otherwise the matugen colours (Colors.qml).
     readonly property bool monotone: FocusMode.active

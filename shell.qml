@@ -1,3 +1,6 @@
+// Big wallpapers (e.g. 8K 16-bit PNGs) exceed Qt's default 256 MB image decode limit and fail to
+// load (desktop icon glass, lock screen). Applied at launch, so it needs a full restart.
+//@ pragma Env QT_IMAGEIO_MAXALLOC=1024
 import Quickshell
 import Quickshell.Wayland
 import QtQuick

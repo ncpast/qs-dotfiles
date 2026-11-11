@@ -11,6 +11,8 @@ import QtQuick
 //   icon     icon theme name, window class / app id, or an absolute file path
 //   command  program to launch (argv array)
 //   x, y     grid cell (column, row)
+//   glyphScale  optional, tinted mode only: < 1 shrinks the icon's symbol inside its tile, for
+//               icons whose symbol runs off the tile's edges (default 1)
 QtObject {
     readonly property int columns: 20
     readonly property int rows: 9
@@ -31,6 +33,6 @@ QtObject {
 
         { name: "Steam",    icon: "steam", command: ["steam"],  x: columns-3, y: 0 },
         { name: "Telegram",    icon: "telegram", command: ["flatpak", "run", "org.telegram.desktop"],  x: columns-3, y: 1 },
-        { name: "CS2",    icon: "counter-strike-2", command: ["steam", "steam://rungameid/730"],  x: columns-3, y: 2 },
+        { name: "CS2",    icon: "counter-strike-2", command: ["steam", "steam://rungameid/730"],  x: columns-3, y: 2, glyphScale: 0.8 },
     ]
 }

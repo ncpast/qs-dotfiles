@@ -3,6 +3,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Services.Pam
 import QtQuick
+import "../Utils"
 
 // Session lock: `qs ipc call lock lock` (SUPER+L, menu) or idle.
 // Suspend: `qs ipc call lock suspend` (suspend.sh, lockscreen button): lock, fade to
@@ -21,8 +22,9 @@ Scope {
     property bool failed: false          // last attempt was wrong
     property int failCount: 0            // bumps on every failure (the field shakes on change)
 
-    property string wallpaper: ""
-    readonly property string wallpaperUrl: wallpaper !== "" ? "file://" + wallpaper : ""
+    // screen-sized copy of the current wallpaper (Utils/Wallpaper.qml keeps it up to date, so the
+    // overlay's Image has it decoded before a lock starts)
+    readonly property string wallpaperUrl: Wallpaper.urlFor(Quickshell.screens.length > 0 ? Quickshell.screens[0].name : "")
 
     readonly property string user: Quickshell.env("USER")
     property string displayName: user
@@ -30,7 +32,7 @@ Scope {
     // fade overlay state
     property bool overlayShown: false
     property real fade: 0
-    property bool pendingLock: false     // lock requested, waiting for the wallpaper path
+    property bool pendingLock: false     // lock requested, fade-in not started yet
     property bool unlocking: false
 
     readonly property int fadeInDuration: 350
@@ -74,7 +76,7 @@ Scope {
         failed = false
         busy = false
         pendingLock = true
-        wallpaperProc.running = true     // refresh the path; fades in when it's done
+        beginFadeIn()
     }
 
     function beginFadeIn() {
@@ -245,26 +247,6 @@ Scope {
             root.failed = true
             root.failCount++
             console.warn("lock: PAM error", err)
-        }
-    }
-
-    // Current wallpaper, from the awww daemon ("... currently displaying: image: /path").
-    // Queried at startup (so it's preloaded) and again on every lock.
-    Process {
-        id: wallpaperProc
-        running: true
-        command: ["awww", "query"]
-        property string found: ""
-        stdout: SplitParser {
-            onRead: line => {
-                var m = line.match(/image:\s*(.+)$/)
-                if (m && wallpaperProc.found === "") wallpaperProc.found = m[1].trim()
-            }
-        }
-        onStarted: found = ""
-        onExited: {
-            if (found !== "") root.wallpaper = found
-            root.beginFadeIn()
         }
     }
 
