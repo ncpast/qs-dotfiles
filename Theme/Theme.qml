@@ -29,7 +29,8 @@ QtObject {
     })
 
     // dark mode + coloured
-    readonly property color desktop_icon_dark_color: Qt.rgba(30 / 255, 30 / 255, 30 / 255, 1)
+    readonly property color desktop_icon_dark_color: Qt.rgba(34 / 255, 34 / 255, 34 / 255, 1)
+    readonly property real dark_icon_gradient: 0.13     // tile lighter at the top than the bottom, 0 = flat
     readonly property real dark_icon_rim: 0.3           // light bevel along the edge (top left + bottom right), 0 = none
     // coloured
     readonly property real colored_icon_lift: 0.3       // brighten the logo's colours: 0 = original, 1 = full

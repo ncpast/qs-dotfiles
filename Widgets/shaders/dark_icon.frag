@@ -24,6 +24,7 @@ layout(std140, binding = 0) uniform buf {
     vec4 darkColor;     // Theme.desktop_icon_dark_color
     float keepWhite;    // 1: keep white enclosed by the logo (see above)
     float rimStrength;  // 0..1: light bevel along the edge (Theme.dark_icon_rim), 0 = none
+    float gradient;     // how much lighter the dark colour is at the top than at the bottom
 };
 
 layout(binding = 1) uniform sampler2D source;
@@ -101,8 +102,10 @@ void main() {
     // swap the white share for darkColor: c = T + a (W - T)  ->  T + a (dark - T).
     // W tends to the pixel itself as a -> 1, so fully white pixels land exactly on darkColor
     // (whatever the tile's own off-white shading), with no lighter halo next to the glyph
+    // darkColor, lighter at the top and darker at the bottom (like the icon theme's own dark icons)
+    vec3 dark = clamp(darkColor.rgb + (0.5 - qt_TexCoord0.y) * gradient, 0.0, 1.0);
     vec3 W = mix(vec3(wMax), c, a * a);
-    vec3 rgb = clamp(c - a * (W - darkColor.rgb), 0.0, 1.0);
+    vec3 rgb = clamp(c - a * (W - dark), 0.0, 1.0);
 
     // bevel: a thin light rim along the icon's outer edge (same as colored_icon.frag), brightest at
     // the top-left and bottom-right corners, fading along the edges to nothing at the top-right and
@@ -118,8 +121,12 @@ void main() {
         float onEdge = 0.6 * (1.0 - smoothstep(0.3, 0.95, texture(source, qt_TexCoord0 + n * 0.012).a))
                      + 0.4 * (1.0 - smoothstep(0.3, 0.95, texture(source, qt_TexCoord0 + n * 0.025).a));
         float s = qt_TexCoord0.x + qt_TexCoord0.y;                    // 0 top left .. 2 bottom right
-        float light = max(1.0 - smoothstep(0.25, 1.05, s), 1.0 - smoothstep(0.25, 1.05, 2.0 - s));
-        rgb = mix(rgb, vec3(1.0), rimStrength * onEdge * light);
+        // top left: soft, reaching about to the middle of the edges; bottom right: same strength,
+        // but shorter (like the icon theme's terminal icon)
+        float tl = 1.0 - smoothstep(0.25, 1.05, s);
+        float br = 1.0 - smoothstep(0.2, 0.75, 2.0 - s);
+        float light = max(tl, br);
+        rgb = mix(rgb, vec3(1.0), min(rimStrength * onEdge * light, 1.0));
     }
 
     fragColor = vec4(rgb, 1.0) * p.a * qt_Opacity;

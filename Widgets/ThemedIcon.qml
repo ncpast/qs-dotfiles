@@ -166,6 +166,7 @@ Item {
             property real lift: Theme.colored_icon_lift
             property real highlight: Theme.colored_icon_highlight
             property real rim: Theme.dark_icon_rim
+            property real gradient: Theme.dark_icon_gradient
             fragmentShader: Qt.resolvedUrl("shaders/colored_icon.frag.qsb")
             layer.enabled: true
             layer.smooth: true
@@ -183,6 +184,7 @@ Item {
             property color darkColor: Theme.desktop_icon_dark_color
             property real keepWhite: root.appOptions.keepWhite ? 1 : 0
             property real rimStrength: Theme.dark_icon_rim
+            property real gradient: Theme.dark_icon_gradient
             fragmentShader: Qt.resolvedUrl("shaders/dark_icon.frag.qsb")
             layer.enabled: true
             layer.smooth: true
