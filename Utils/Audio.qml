@@ -8,6 +8,11 @@ Item {
 
     property int  volume: 0
     property bool muted: false
+    // false until the first reading after start: the start values above aren't real, so the change
+    // to the real ones isn't a volume change (the OSD ignores changes until these are set). Set after
+    // the value, so the first change still sees false.
+    property bool volumeKnown: false
+    property bool muteKnown: false
 
     readonly property string icon: {
         if (muted)        return ""
@@ -53,6 +58,7 @@ Item {
                 const match = data.match(/(\d+)%/)
                 if (match) {
                     root.volume = parseInt(match[1])
+                    root.volumeKnown = true
                     //console.log('Volume:', root.volume)   
                 }
             }
@@ -66,6 +72,7 @@ Item {
         stdout: SplitParser {
             onRead: data => {
                 root.muted = data.includes("yes")
+                root.muteKnown = true
             }
         }
     }

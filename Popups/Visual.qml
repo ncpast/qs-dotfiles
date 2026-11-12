@@ -9,7 +9,9 @@ import "../Utils"
 
 PanelWindow {
     WlrLayershell.namespace: "shell:controlpanel"
-    WlrLayershell.layer: WlrLayer.Top;
+    // Same layer as the bars, and Hyprland stacks surfaces within a layer in the order they appear:
+    // the frame has to appear before the bars or it covers them. shell.qml makes sure of that.
+    WlrLayershell.layer: WlrLayer.Top
     exclusionMode: ExclusionMode.Ignore
 
     // Init monitors: 
@@ -32,6 +34,14 @@ PanelWindow {
         id: root
         anchors.fill: parent
 
+        // The hole springs to new geometry (focus mode, bars shown / hidden), but not on the first
+        // layout: the window starts out 0x0, and springing open from there flashed the whole screen
+        // in Theme.background whenever quickshell started. So the springs only switch on once the
+        // window has its real size (and that first layout has been applied as is).
+        property bool animate: false
+        readonly property bool sized: width > 0 && height > 0
+        onSizedChanged: if (sized) Qt.callLater(() => root.animate = true)
+
         // Animated geometry of the clear content area (the hole in the background).
         // Not drawn itself; the Shape below binds to it.
         Item {
@@ -47,11 +57,11 @@ PanelWindow {
             // where the black screen Corners do the rounding
             property real bottomRadius: Theme.leftBarHidden ? 0 : radius
 
-            Behavior on x            { SpringAnimation { spring: Theme.springStiffness; damping: Theme.springDamping; mass: Theme.springMass; epsilon: Theme.springEpsilon } }
-            Behavior on y            { SpringAnimation { spring: Theme.springStiffness; damping: Theme.springDamping; mass: Theme.springMass; epsilon: Theme.springEpsilon } }
-            Behavior on width        { SpringAnimation { spring: Theme.springStiffness; damping: Theme.springDamping; mass: Theme.springMass; epsilon: Theme.springEpsilon } }
-            Behavior on height       { SpringAnimation { spring: Theme.springStiffness; damping: Theme.springDamping; mass: Theme.springMass; epsilon: Theme.springEpsilon } }
-            Behavior on bottomRadius { SpringAnimation { spring: Theme.springStiffness; damping: Theme.springDamping; mass: Theme.springMass; epsilon: Theme.springEpsilon } }
+            Behavior on x            { enabled: root.animate; SpringAnimation { spring: Theme.springStiffness; damping: Theme.springDamping; mass: Theme.springMass; epsilon: Theme.springEpsilon } }
+            Behavior on y            { enabled: root.animate; SpringAnimation { spring: Theme.springStiffness; damping: Theme.springDamping; mass: Theme.springMass; epsilon: Theme.springEpsilon } }
+            Behavior on width        { enabled: root.animate; SpringAnimation { spring: Theme.springStiffness; damping: Theme.springDamping; mass: Theme.springMass; epsilon: Theme.springEpsilon } }
+            Behavior on height       { enabled: root.animate; SpringAnimation { spring: Theme.springStiffness; damping: Theme.springDamping; mass: Theme.springMass; epsilon: Theme.springEpsilon } }
+            Behavior on bottomRadius { enabled: root.animate; SpringAnimation { spring: Theme.springStiffness; damping: Theme.springDamping; mass: Theme.springMass; epsilon: Theme.springEpsilon } }
         }
 
         // Background: full-screen rect with the content area cut out (odd-even fill).

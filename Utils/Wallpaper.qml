@@ -20,10 +20,26 @@ Singleton {
     id: root
 
     // output name -> "file://..." url of the screen-sized copy ("" until known)
-    property var urls: ({})
+    // At a greetd autologin (QS_LOCK_AT_START, see Lock/Lock.qml) it starts from the last known urls
+    // (lastUrls below): the lock screen comes up before awww even runs, and without this it showed
+    // Theme.background for seconds until awww reported its wallpaper. Only then: a known url makes
+    // the (synchronous) wallpaper images decode during startup, which delays the bars, so normal
+    // starts get the url from awww right after instead.
+    property var urls: {
+        if (Quickshell.env("QS_LOCK_AT_START") !== "1") return {}
+        try { return JSON.parse(lastUrls.text()) || {} } catch (e) { return {} }
+    }
     function urlFor(output) { return urls[output] ?? "" }
 
     readonly property string cacheDir: Quickshell.env("HOME") + "/.cache/quickshell/wallpaper"
+
+    // urls as last resolved, read synchronously at startup (blockLoading), rewritten on every change
+    FileView {
+        id: lastUrls
+        path: root.cacheDir + "/last-urls.json"
+        blockLoading: true
+        printErrors: false
+    }
 
     property string version: ""
     Process {
@@ -35,9 +51,11 @@ Singleton {
     }
 
     function setUrl(output, url) {
+        if (urls[output] === url) return
         var u = Object.assign({}, urls)
         u[output] = url
         urls = u
+        lastUrls.setText(JSON.stringify(u))
     }
 
     Variants {

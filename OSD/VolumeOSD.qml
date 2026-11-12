@@ -245,13 +245,16 @@ Item {
 
     Connections {
         target: Audio
+        // the first reading after the shell (re)starts isn't a change: no OSD, no sound
         function onVolumeChanged() {
+            if (!Audio.volumeKnown) return
             osdController.brightnessMode = false
             updateFullscreenState()
             osdController.show()
             playVolumeSound()
         }
         function onMutedChanged() {
+            if (!Audio.muteKnown) return
             osdController.brightnessMode = false
             osdController.show()
         }
