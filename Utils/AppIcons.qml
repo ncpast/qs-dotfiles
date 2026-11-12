@@ -15,13 +15,20 @@ Singleton {
 
     // Reading applications.values makes callers re-evaluate once desktop entries load
     // (heuristicLookup alone isn't reactive, which left some icons stuck on the fallback).
+    // A desktop entry whose Icon= is a file path (e.g. a custom icon set in
+    // ~/.local/share/applications/*.desktop) uses that file, ahead of the aliases above: it's an
+    // explicit choice. Icon theme names go through the theme as before.
     // Returns "" when nothing matches, so callers can try other names / their own icon.
     function lookup(name) {
         if (name === undefined || name === null || name === "") return ""
         if (name.startsWith("/")) return "file://" + name
 
+        var custom = customIcon(name)
+        if (custom !== "") return custom
+
         var loaded = DesktopEntries.applications.values.length
         var entry = loaded > 0 ? DesktopEntries.heuristicLookup(name) : null
+
         var names = []
         if (aliases[name]) names.push(aliases[name])      // explicit overrides win
         if (entry && entry.icon) names.push(entry.icon)
@@ -29,6 +36,29 @@ Singleton {
         for (var i = 0; i < names.length; i++) {
             var path = Quickshell.iconPath(names[i], true) 
             if (path !== "") return path
+        }
+        return ""
+    }
+
+    // File-path icon (Icon=/path/to/file) of a desktop entry matching name, or "".
+    // Several entries can match (e.g. a distro's discord.desktop without an icon next to your own
+    // com.discordapp.Discord.desktop), so every match is checked: heuristic lookup of the name and
+    // of its alias, then any entry whose id / name / window class equals the name.
+    function customIcon(name) {
+        var apps = DesktopEntries.applications.values
+        if (apps.length === 0) return ""
+        var isFile = e => e && e.icon && e.icon.startsWith("/")
+        var cands = [DesktopEntries.heuristicLookup(name)]
+        if (aliases[name]) cands.push(DesktopEntries.heuristicLookup(aliases[name]))
+        for (var i = 0; i < cands.length; i++)
+            if (isFile(cands[i])) return "file://" + cands[i].icon
+        var want = [_norm(_clean(name)), _norm(aliases[name])].filter(w => w !== "")
+        for (var j = 0; j < apps.length; j++) {
+            var e = apps[j]
+            if (!isFile(e)) continue
+            if (want.indexOf(_norm(e.id)) !== -1 || want.indexOf(_norm(e.name)) !== -1
+                    || want.indexOf(_norm(e.startupClass)) !== -1)
+                return "file://" + e.icon
         }
         return ""
     }
