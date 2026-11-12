@@ -30,9 +30,11 @@ void main() {
     //     up at 3+ of the sample points, so two-tone and gradient tiles are fully covered, while a
     //     glyph that merely touches the edge (one or two points) still counts as glyph.
     const int N = 10;
-    vec2 pts[N] = vec2[N](vec2(0.22, 0.10), vec2(0.50, 0.08), vec2(0.78, 0.10),
-                          vec2(0.22, 0.90), vec2(0.50, 0.92), vec2(0.78, 0.90),
-                          vec2(0.08, 0.35), vec2(0.08, 0.65), vec2(0.92, 0.35), vec2(0.92, 0.65));
+    // ~13% in from the edges: still on the tile for icons with transparent padding around it
+    // (common, ~6-10%), and inside the rounded corners
+    vec2 pts[N] = vec2[N](vec2(0.25, 0.14), vec2(0.50, 0.13), vec2(0.75, 0.14),
+                          vec2(0.25, 0.86), vec2(0.50, 0.87), vec2(0.75, 0.86),
+                          vec2(0.13, 0.35), vec2(0.13, 0.65), vec2(0.87, 0.35), vec2(0.87, 0.65));
     vec4 s[N];
     int opaque = 0;
     for (int i = 0; i < N; i++) {

@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import Quickshell.Services.SystemTray
 import "../../Theme"
 import "../../Utils"
+import ".."
 
 // "Programs" tab: one row per system tray item (background programs).
 // Left click opens the app, right click closes it.
@@ -134,18 +135,17 @@ PanelWindow {
                         anchors.rightMargin: 10
                         spacing: 8
 
-                        Image {
+                        ThemedIcon {
                             Layout.preferredWidth: 16
                             Layout.preferredHeight: 16
                             sourceSize: Qt.size(32, 32)
-                            smooth: true
-                            asynchronous: true
                             // AppIcons first (same icons as the rest of the shell), the tray
                             // item's own icon as a fallback
                             source: AppIcons.lookup(row.entry ? row.entry.id : "")
                                  || AppIcons.lookup(row.modelData.id)
                                  || AppIcons.lookup(row.modelData.title)
                                  || row.modelData.icon
+                            appName: row.entry ? row.entry.id : row.modelData.id
                         }
 
                         Text {

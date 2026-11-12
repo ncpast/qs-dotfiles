@@ -336,16 +336,15 @@ Item {
                         Repeater {
                             model: cell.apps
 
-                            Image {
+                            ThemedIcon {
                                 id: appIcon
                                 required property string modelData
                                 width: 16
                                 height: 16
                                 sourceSize: Qt.size(32, 32)
-                                smooth: true
-                                asynchronous: true
                                 opacity: cell.current ? 1.0 : 0.75
                                 source: AppIcons.resolve(modelData)
+                                appName: modelData
                             }
                         }
                     }

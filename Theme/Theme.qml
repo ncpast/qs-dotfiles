@@ -9,25 +9,39 @@ QtObject {
     readonly property int   spacer_panel_size: 0 + 8
     property bool leftBarHidden: true
 
-    // Desktop icons in dark mode: white parts of the icons (white symbols, white tiles) become
-    // desktop_icon_dark_color; everything else keeps its colours. Ignored while tintDesktopIcons is on.
-    property bool darkModeIcons: true
+    // ---- App icon style (desktop + top bar) --------------------------------------------------------
+    // If several are on: tinted > coloured > dark mode.
+    property bool tintDesktopIcons: false   // iOS "liquid glass": accent tile + glyph, frosted wallpaper behind
+    property bool coloredIcons: false       // dark tile, logo in the tile's own colours (Steam: blue on dark)
+    property bool darkModeIcons: true       // white parts (logos, tiles) turn desktop_icon_dark_color
+
+    // Per app. Key: any name resolving to the app's icon (icon name, desktop entry id, window class).
+    //   darkMode: false    dark mode leaves this app as it is
+    //   keepWhite: true    keep white enclosed by the logo (Brave's face) when darkening
+    //   coloredIcon: bool  coloured mode for this app or not, overriding coloredIcons
+    //   glyphScale: < 1    tinted mode: shrink a symbol that runs off its tile
+    readonly property var iconOptions: ({
+        "brave":            { keepWhite: true },
+        "codium":           { darkMode: false },
+        "nautilus":         { darkMode: false },
+        "steam":            { coloredIcon: true },
+        "counter-strike-2": { coloredIcon: true, glyphScale: 0.8 }
+    })
+
+    // dark mode + coloured
     readonly property color desktop_icon_dark_color: Qt.rgba(30 / 255, 30 / 255, 30 / 255, 1)
-
-
-    // Desktop icons as tinted "liquid glass" (iOS style): desaturated, tinted Theme.accent and
-    // translucent over the blurred wallpaper behind them.
-    property bool tintDesktopIcons: false
-
-    readonly property real desktop_icon_tint_opacity: 1     // how visible the tinted icon is, 0..1
-    readonly property real desktop_icon_tile_opacity: 0.55    // dark tile behind the glyph (glass shows through the rest)
-    readonly property real desktop_icon_gloss: 0.12           // sheen across the top of the icon, 0..~0.3
-    // the glass always shows the blurred wallpaper behind the icon; this is how strongly it's
-    // frosted over (Theme.background) on top of that: 0 = clear blurred glass, 1 = solid
-    readonly property real desktop_icon_glass_opacity: 0
-    readonly property real desktop_icon_glass_blur: 0.5       // 0..1
-    readonly property real desktop_icon_rim_width: 1      // px, glass edge highlight
-    readonly property real desktop_icon_rim_opacity: 0.5    // brightest (top) part of the rim, 0..1
+    readonly property real dark_icon_rim: 0.3           // light bevel along the edge (top left + bottom right), 0 = none
+    // coloured
+    readonly property real colored_icon_lift: 0.3       // brighten the logo's colours: 0 = original, 1 = full
+    readonly property real colored_icon_highlight: 0.15  // glossy horizontal band across the logo, 0 = none
+    // tinted
+    readonly property real desktop_icon_tint_opacity: 1     // how visible the tinted icon is
+    readonly property real desktop_icon_tile_opacity: 0.55  // dark tile behind the glyph (glass shows through the rest)
+    readonly property real desktop_icon_gloss: 0.12         // sheen across the top, 0..~0.3
+    readonly property real desktop_icon_glass_opacity: 0    // frosting over the blurred glass: 0 = clear, 1 = solid
+    readonly property real desktop_icon_glass_blur: 0.5     // 0..1
+    readonly property real desktop_icon_rim_width: 1        // px, glass edge highlight
+    readonly property real desktop_icon_rim_opacity: 0.5    // its brightest (top) part, 0..1
 
     // Focus mode (Theme/FocusMode.qml): while the focused workspace is in focus mode,
     // everything goes monotone black & white; otherwise the matugen colours (Colors.qml).

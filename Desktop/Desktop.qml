@@ -6,6 +6,7 @@ import QtQuick.Effects
 import Qt5Compat.GraphicalEffects
 import "../Theme"
 import "../Utils"
+import "../Widgets"
 
 // Desktop icons: one layer-shell window per monitor on the lowest (Background) layer,
 // so they sit under every window. Visible only while that monitor's active workspace
@@ -165,7 +166,6 @@ Variants {
                                 height: DesktopIcons.iconSize
                                 readonly property url src: AppIcons.resolve(cell.modelData.icon)
                                 readonly property bool tinted: Theme.tintDesktopIcons
-                                readonly property bool dark: Theme.darkModeIcons && !tinted && (cell.modelData.darkMode ?? true)
 
                                 layer.enabled: true
                                 layer.effect: MultiEffect {
@@ -182,184 +182,14 @@ Variants {
                                 scale: mouse.pressed ? 0.95 : (mouse.containsMouse ? 1.05 : 1.0)
                                 Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
 
-                                // Glass (tinted mode only): the wallpaper right behind the icon, blurred and
-                                // cut out in the icon's own shape
-                                Item {
-                                    id: glass
+                                // The icon: normal / dark / tinted, with frosted glass + rim when tinted
+                                // (Widgets/ThemedIcon.qml)
+                                ThemedIcon {
                                     anchors.fill: parent
-                                    visible: iconItem.tinted && wallImg.status === Image.Ready
-
-                                    // Blurring only the patch right under the icon averages it into one flat
-                                    // colour at strong blur (nothing around it to blend in). So a larger
-                                    // patch, padded by the blur radius on every side, is blurred, and only
-                                    // the middle (the part under the icon) is used.
-                                    readonly property real pad: Math.ceil(glassBlur.blurMax * glassBlur.blur)
-
-                                    ShaderEffectSource {
-                                        id: glassSource
-                                        x: -glass.pad
-                                        y: -glass.pad
-                                        width: glass.width + 2 * glass.pad
-                                        height: glass.height + 2 * glass.pad
-                                        sourceItem: wallImg
-                                        visible: false
-                                        // the padded patch of wallpaper under the icon. mapToItem isn't
-                                        // reactive, so every position on the way up is listed (the icon is
-                                        // laid out inside the tile / column after this first runs), plus the
-                                        // hover scale and the window position (bars shown / hidden)
-                                        sourceRect: {
-                                            var deps = iconItem.scale + iconItem.x + iconItem.y
-                                                     + iconColumn.x + iconColumn.y + tile.x + tile.y
-                                                     + cell.x + cell.y + win.margins.left + win.margins.top
-                                                     + wallImg.x + wallImg.y + wallImg.width + wallImg.height
-                                            var a = glass.mapToItem(wallImg, -glass.pad, -glass.pad)
-                                            var b = glass.mapToItem(wallImg, glass.width + glass.pad, glass.height + glass.pad)
-                                            return Qt.rect(a.x, a.y, b.x - a.x, b.y - a.y)
-                                        }
-                                    }
-
-                                    MultiEffect {
-                                        id: glassBlur
-                                        anchors.fill: glassSource
-                                        source: glassSource
-                                        autoPaddingEnabled: false
-                                        blurEnabled: true
-                                        blurMax: 32
-                                        blur: Theme.desktop_icon_glass_blur
-                                        visible: false
-                                    }
-
-                                    // ...and only the part in the icon's shape is shown: the mask is the
-                                    // same padded size, with the icon in the middle
-                                    Item {
-                                        id: glassShape
-                                        anchors.fill: glassSource
-                                        visible: false
-                                        Image {
-                                            x: glass.pad
-                                            y: glass.pad
-                                            width: glass.width
-                                            height: glass.height
-                                            source: iconItem.src
-                                            sourceSize: Qt.size(DesktopIcons.iconSize * 2, DesktopIcons.iconSize * 2)
-                                            asynchronous: true
-                                        }
-                                    }
-
-                                    OpacityMask {
-                                        anchors.fill: glassSource
-                                        source: glassBlur
-                                        maskSource: glassShape
-                                    }
-
-                                    // frosting on top of the blur: how strongly the glass blocks the wallpaper
-                                    Rectangle {
-                                        id: glassFrost
-                                        anchors.fill: glassSource
-                                        color: Theme.background
-                                        visible: false
-                                    }
-
-                                    OpacityMask {
-                                        anchors.fill: glassSource
-                                        source: glassFrost
-                                        maskSource: glassShape
-                                        opacity: Theme.desktop_icon_glass_opacity
-                                        visible: opacity > 0
-                                    }
-                                }
-
-                                // The icon itself. Normal mode: as is. Tinted / dark mode: only the
-                                // texture for the shaders below.
-                                Image {
-                                    id: iconImg
-                                    anchors.fill: parent
-                                    sourceSize: Qt.size(DesktopIcons.iconSize * 2, DesktopIcons.iconSize * 2)
-                                    smooth: true
-                                    asynchronous: true
                                     source: iconItem.src
-                                    visible: !iconItem.tinted && !iconItem.dark
-                                }
-
-                                // Dark mode (iOS style): white tiles repainted dark, glyph kept
-                                // (shaders/dark_icon.frag)
-                                ShaderEffect {
-                                    anchors.fill: parent
-                                    visible: iconItem.dark && iconImg.status === Image.Ready
-                                    property variant source: iconImg
-                                    property color darkColor: Theme.desktop_icon_dark_color
-                                    property real keepWhite: cell.modelData.keepWhite ? 1 : 0
-                                    fragmentShader: Qt.resolvedUrl("shaders/dark_icon.frag.qsb")
-                                }
-
-                                // Tinted mode (iOS style): a dark translucent accent tile with a bright
-                                // accent glyph, gradients and a sheen on top (shaders/tinted_icon.frag)
-                                ShaderEffect {
-                                    anchors.fill: parent
-                                    visible: iconItem.tinted && iconImg.status === Image.Ready
-                                    opacity: Theme.desktop_icon_tint_opacity
-                                    property variant source: iconImg
-                                    property color tint: Theme.accent
-                                    property real tileOpacity: Theme.desktop_icon_tile_opacity
-                                    property real gloss: Theme.desktop_icon_gloss
-                                    property real glyphScale: cell.modelData.glyphScale ?? 1
-                                    fragmentShader: Qt.resolvedUrl("shaders/tinted_icon.frag.qsb")
-                                }
-
-                                // Glass rim (tinted mode only)
-                                Item {
-                                    anchors.fill: parent
-                                    visible: iconItem.tinted
-
-                                    Rectangle {
-                                        id: rimLight
-                                        anchors.fill: parent
-                                        visible: false
-                                        gradient: Gradient {
-                                            GradientStop { position: 0.0;  color: Qt.rgba(1, 1, 1, Theme.desktop_icon_rim_opacity) }
-                                            GradientStop { position: 0.45; color: Qt.rgba(1, 1, 1, Theme.desktop_icon_rim_opacity * 0.15) }
-                                            GradientStop { position: 1.0;  color: Qt.rgba(1, 1, 1, Theme.desktop_icon_rim_opacity * 0.4) }
-                                        }
-                                    }
-
-                                    Image {
-                                        id: rimOuter
-                                        anchors.fill: parent
-                                        source: iconItem.src
-                                        sourceSize: Qt.size(DesktopIcons.iconSize * 2, DesktopIcons.iconSize * 2)
-                                        asynchronous: true
-                                        visible: false
-                                    }
-
-                                    // the shape, inset by the rim width on every side
-                                    Item {
-                                        id: rimInner
-                                        anchors.fill: parent
-                                        visible: false
-                                        Image {
-                                            anchors.centerIn: parent
-                                            width: parent.width - 2 * Theme.desktop_icon_rim_width
-                                            height: parent.height - 2 * Theme.desktop_icon_rim_width
-                                            source: iconItem.src
-                                            sourceSize: Qt.size(DesktopIcons.iconSize * 2, DesktopIcons.iconSize * 2)
-                                            asynchronous: true
-                                        }
-                                    }
-
-                                    OpacityMask {
-                                        id: rimFilled
-                                        anchors.fill: parent
-                                        source: rimLight
-                                        maskSource: rimOuter
-                                        visible: false
-                                    }
-
-                                    OpacityMask {
-                                        anchors.fill: parent
-                                        source: rimFilled
-                                        maskSource: rimInner
-                                        invert: true
-                                    }
+                                    sourceSize: Qt.size(DesktopIcons.iconSize * 4, DesktopIcons.iconSize * 4)
+                                    appName: cell.modelData.icon
+                                    wallpaper: wallImg
                                 }
                             }
 
