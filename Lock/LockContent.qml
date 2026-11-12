@@ -346,9 +346,33 @@ Item {
                     radius: field.radius
                     opacity: loginBox.tc
                     visible: opacity > 0
-                    border.width: 0.5
                     color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.8)
-                    border.color: Qt.rgba(Theme.background2.r, Theme.background2.g, Theme.background2.b, 1)
+                }
+
+                // liquid glass rim (Widgets/shaders/glass_rim.frag), drawn from a hidden copy of the shape;
+                // supersampled so it's anti-aliased
+                Rectangle {
+                    id: fieldRimShape
+                    anchors.fill: parent
+                    radius: field.radius
+                    visible: false
+                    layer.enabled: true
+                    layer.smooth: true
+                    layer.textureSize: Qt.size(width * 4, height * 4)
+                }
+                ShaderEffect {
+                    anchors.fill: parent
+                    opacity: loginBox.tc
+                    visible: opacity > 0
+                    property variant source: fieldRimShape
+                    property size texel: Qt.size(1 / Math.max(1, width), 1 / Math.max(1, height))
+                    property real rimPx: Theme.rim_width
+                    property real strength: Theme.rim_opacity
+                    fragmentShader: Qt.resolvedUrl("../Widgets/shaders/glass_rim.frag.qsb")
+                    layer.enabled: true
+                    layer.smooth: true
+                    layer.mipmap: true
+                    layer.textureSize: Qt.size(width * 4, height * 4)
                 }
 
                 SequentialAnimation {
@@ -522,6 +546,30 @@ Item {
                                     anchors.fill: parent
                                     radius: width / 2
                                     color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.68)
+                                }
+
+                                // liquid glass rim (Widgets/shaders/glass_rim.frag), drawn from a hidden copy of the shape;
+                                // supersampled so it's anti-aliased
+                                Rectangle {
+                                    id: buttonRimShape
+                                    anchors.fill: parent
+                                    radius: width / 2
+                                    visible: false
+                                    layer.enabled: true
+                                    layer.smooth: true
+                                    layer.textureSize: Qt.size(width * 4, height * 4)
+                                }
+                                ShaderEffect {
+                                    anchors.fill: parent
+                                    property variant source: buttonRimShape
+                                    property size texel: Qt.size(1 / Math.max(1, width), 1 / Math.max(1, height))
+                                    property real rimPx: Theme.rim_width
+                                    property real strength: Theme.rim_opacity
+                                    fragmentShader: Qt.resolvedUrl("../Widgets/shaders/glass_rim.frag.qsb")
+                                    layer.enabled: true
+                                    layer.smooth: true
+                                    layer.mipmap: true
+                                    layer.textureSize: Qt.size(width * 4, height * 4)
                                 }
                             }
 

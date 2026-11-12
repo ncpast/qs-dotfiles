@@ -29,6 +29,13 @@ layout(std140, binding = 0) uniform buf {
 
 layout(binding = 1) uniform sampler2D source;
 
+// alpha at uv, 0 outside the texture (sampling clamps to the edge pixels otherwise, so a shape that
+// touches its texture's border would seem to continue past it and get no rim there)
+float alphaAt(vec2 uv) {
+    if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return 0.0;
+    return texture(source, uv).a;
+}
+
 float luma(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
 float chroma(vec3 c) { return max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b)); }
 float minc(vec3 c) { return min(c.r, min(c.g, c.b)); }
@@ -94,8 +101,8 @@ void main() {
     // the icon's outer rim: icon themes often give it a light grey lip (e.g. along the bottom),
     // which isn't white enough to count above and would stay as a light line. Light, colourless
     // pixels in a thin band along the edge go dark too.
-    float edgeA = min(min(texture(source, qt_TexCoord0 + vec2(0.03, 0.0)).a, texture(source, qt_TexCoord0 - vec2(0.03, 0.0)).a),
-                      min(texture(source, qt_TexCoord0 + vec2(0.0, 0.03)).a, texture(source, qt_TexCoord0 - vec2(0.0, 0.03)).a));
+    float edgeA = min(min(alphaAt(qt_TexCoord0 + vec2(0.03, 0.0)), alphaAt(qt_TexCoord0 - vec2(0.03, 0.0))),
+                      min(alphaAt(qt_TexCoord0 + vec2(0.0, 0.03)), alphaAt(qt_TexCoord0 - vec2(0.0, 0.03))));
     float rim = (1.0 - smoothstep(0.3, 0.9, edgeA)) * smoothstep(0.45, 0.7, minc(c)) * (1.0 - smoothstep(0.15, 0.3, chroma(c)));
     a = max(a, rim);
 
@@ -114,12 +121,12 @@ void main() {
     for (int k = 0; k < 8; k++) {
         float ang = float(k) * 0.7853982;
         vec2 dir = vec2(cos(ang), sin(ang));
-        gsum += dir * texture(source, qt_TexCoord0 + dir * 0.02).a;
+        gsum += dir * alphaAt(qt_TexCoord0 + dir * 0.02);
     }
     if (rimStrength > 0.0 && dot(gsum, gsum) > 1e-4) {
         vec2 n = normalize(-gsum);                                    // points out of the shape
-        float onEdge = 0.6 * (1.0 - smoothstep(0.3, 0.95, texture(source, qt_TexCoord0 + n * 0.012).a))
-                     + 0.4 * (1.0 - smoothstep(0.3, 0.95, texture(source, qt_TexCoord0 + n * 0.025).a));
+        float onEdge = 0.6 * (1.0 - smoothstep(0.3, 0.95, alphaAt(qt_TexCoord0 + n * 0.012)))
+                     + 0.4 * (1.0 - smoothstep(0.3, 0.95, alphaAt(qt_TexCoord0 + n * 0.025)));
         float s = qt_TexCoord0.x + qt_TexCoord0.y;                    // 0 top left .. 2 bottom right
         // top left: soft, reaching about to the middle of the edges; bottom right: same strength,
         // but shorter (like the icon theme's terminal icon)

@@ -23,8 +23,9 @@ QtObject {
     readonly property var iconOptions: ({
         "brave":            { keepWhite: true },
         "codium":           { darkMode: false },
-        "nautilus":         { darkMode: false },
+        "nautilus":         { keepWhite: true },
         "steam":            { coloredIcon: true },
+        "discord":          { coloredIcon: true },
         "counter-strike-2": { coloredIcon: true, glyphScale: 0.8 }
     })
 
@@ -39,10 +40,8 @@ QtObject {
     readonly property real desktop_icon_tint_opacity: 1     // how visible the tinted icon is
     readonly property real desktop_icon_tile_opacity: 0.55  // dark tile behind the glyph (glass shows through the rest)
     readonly property real desktop_icon_gloss: 0.12         // sheen across the top, 0..~0.3
-    readonly property real desktop_icon_glass_opacity: 0    // frosting over the blurred glass: 0 = clear, 1 = solid
+    readonly property real desktop_icon_glass_opacity: 0.3    // frosting over the blurred glass: 0 = clear, 1 = solid
     readonly property real desktop_icon_glass_blur: 0.5     // 0..1
-    readonly property real desktop_icon_rim_width: 1        // px, glass edge highlight
-    readonly property real desktop_icon_rim_opacity: 0.5    // its brightest (top) part, 0..1
 
     // Focus mode (Theme/FocusMode.qml): while the focused workspace is in focus mode,
     // everything goes monotone black & white; otherwise the matugen colours (Colors.qml).
@@ -76,7 +75,12 @@ QtObject {
     readonly property int   button_shadow_radius: 8
     readonly property color button_shadow_color: Qt.rgba(0, 0, 0, 0.15)
 
-    // MultiEffect drop shadows over the wallpaper (lock screen, desktop icons).
+    // Liquid glass rim (Widgets/shaders/glass_rim.frag), everywhere it's used: desktop icons,
+    // lock screen field + power buttons, notification button row.
+    readonly property real  rim_width: 1        // px
+    readonly property real  rim_opacity: 0.2    // its brightest (top) part, 0..1
+
+    // Drop shadows (lock screen, desktop icons, notification cards).
     // blur is a fraction (0..1) of blur_max (px).
     readonly property color shadow_color: Qt.rgba(0, 0, 0, 0.35)
     readonly property real  shadow_blur: 0.6

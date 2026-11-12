@@ -22,6 +22,8 @@ Scope {
     readonly property int staggerMs: 80          // delay between cards that arrive together
 
     readonly property int overshootRoom: 60      // window space left of the cards for the bounce
+    // room for the cards' drop shadow (Theme.shadow_*) around them
+    readonly property real shadowPad: Theme.shadow_blur * Theme.shadow_blur_max + Math.abs(Theme.shadow_offset)
 
     property string udiskieState: ""             // "mounted" | "unmounted" | "" (last udiskie notification)
     property double nextSlot: 0                  // earliest start time for the next entrance
@@ -84,7 +86,7 @@ Scope {
         // Height of the stack, but it only ever shrinks after things have settled:
         // resizing a layer surface while cards are moving makes the compositor redraw /
         // reconfigure it mid-animation. It grows immediately so new cards always fit.
-        readonly property real wantedHeight: Math.max(1, list.contentHeight + root.gap)
+        readonly property real wantedHeight: Math.max(1, list.contentHeight + root.gap + root.shadowPad)
         property real heldHeight: 1
         onWantedHeightChanged: {
             if (wantedHeight > heldHeight) heldHeight = wantedHeight
@@ -97,6 +99,9 @@ Scope {
         }
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.layer: WlrLayer.Overlay
+        // own namespace so Hyprland can blur the cards but not their drop shadow
+        // (layer rule in ~/.config/hypr/modules/windowrules.lua)
+        WlrLayershell.namespace: "quickshell-notifications"
         color: "transparent"
         mask: Region { item: list }
 
@@ -243,6 +248,54 @@ Scope {
                 // the card normally has 14 px below its text; with buttons that bottom padding is
                 // boxMargin instead
                 readonly property real extra: hasButtons ? optionsHeight + optionsGap + (boxMargin - 14) : 0
+
+                // Drop shadow (Theme.shadow_*), behind the card and following it (slide, press scale).
+                // Masked out under the card itself: the card is translucent, so a shadow showing
+                // through would darken it - this way it's only around the outside, like the lock screen.
+                Item {
+                    id: cardShadow
+                    readonly property real pad: root.shadowPad
+                    visible: bg.visible
+                    x: bg.x - pad
+                    y: bg.y - pad
+                    width: bg.width + 2 * pad
+                    height: bg.height + 2 * pad
+                    scale: bg.scale
+
+                    RectangularShadow {
+                        x: cardShadow.pad
+                        y: cardShadow.pad
+                        width: bg.width
+                        height: bg.height
+                        radius: bg.radius
+                        blur: Theme.shadow_blur * Theme.shadow_blur_max
+                        offset: Qt.vector2d(0, Theme.shadow_offset)
+                        color: Theme.shadow_color
+                    }
+
+                    // the card's shape, cut out of the shadow. 1 px smaller than the card: the mask's
+                    // soft edge then falls under the card instead of leaving a light seam around it
+                    Item {
+                        id: cardShadowHole
+                        anchors.fill: parent
+                        visible: false
+                        layer.enabled: true
+                        Rectangle {
+                            x: cardShadow.pad + 1
+                            y: cardShadow.pad + 1
+                            width: bg.width - 2
+                            height: bg.height - 2
+                            radius: bg.radius - 1
+                        }
+                    }
+
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        maskEnabled: true
+                        maskInverted: true
+                        maskSource: cardShadowHole
+                    }
+                }
 
                 Rectangle {
                     id: bg
@@ -447,6 +500,30 @@ Scope {
                                     }
                                 }
                             }
+                        }
+
+                        // liquid glass rim (Widgets/shaders/glass_rim.frag) around the button row, drawn
+                        // from a hidden copy of the box's shape; supersampled so it's anti-aliased
+                        Rectangle {
+                            id: optionsRimShape
+                            anchors.fill: parent
+                            radius: optionsBox.radius
+                            visible: false
+                            layer.enabled: true
+                            layer.smooth: true
+                            layer.textureSize: Qt.size(width * 4, height * 4)
+                        }
+                        ShaderEffect {
+                            anchors.fill: parent
+                            property variant source: optionsRimShape
+                            property size texel: Qt.size(1 / Math.max(1, width), 1 / Math.max(1, height))
+                            property real rimPx: Theme.rim_width
+                            property real strength: Theme.rim_opacity
+                            fragmentShader: Qt.resolvedUrl("../Widgets/shaders/glass_rim.frag.qsb")
+                            layer.enabled: true
+                            layer.smooth: true
+                            layer.mipmap: true
+                            layer.textureSize: Qt.size(width * 4, height * 4)
                         }
                     }
 

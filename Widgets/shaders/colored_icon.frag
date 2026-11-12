@@ -35,6 +35,13 @@ layout(std140, binding = 0) uniform buf {
 
 layout(binding = 1) uniform sampler2D source;
 
+// alpha at uv, 0 outside the texture (sampling clamps to the edge pixels otherwise, so a shape that
+// touches its texture's border would seem to continue past it and get no rim there)
+float alphaAt(vec2 uv) {
+    if (uv.x < 0.0 || uv.y < 0.0 || uv.x > 1.0 || uv.y > 1.0) return 0.0;
+    return texture(source, uv).a;
+}
+
 const int N = 10;
 
 vec4 unpremul(vec4 c) { return c.a > 0.0 ? vec4(c.rgb / c.a, c.a) : vec4(0.0); }
@@ -92,7 +99,7 @@ float minAlpha(vec2 uv, float r) {
     float m = 1.0;
     for (int k = 0; k < 8; k++) {
         float ang = float(k) * 0.7853982;
-        m = min(m, texture(source, uv + r * vec2(cos(ang), sin(ang))).a);
+        m = min(m, alphaAt(uv + r * vec2(cos(ang), sin(ang))));
     }
     return m;
 }
@@ -243,12 +250,12 @@ void main() {
     for (int k = 0; k < 8; k++) {
         float ang = float(k) * 0.7853982;
         vec2 dir = vec2(cos(ang), sin(ang));
-        gsum += dir * texture(source, qt_TexCoord0 + dir * 0.02).a;
+        gsum += dir * alphaAt(qt_TexCoord0 + dir * 0.02);
     }
     if (dot(gsum, gsum) > 1e-4) {
         vec2 n = normalize(-gsum);                                    // points out of the shape
-        float onEdge = 0.6 * (1.0 - smoothstep(0.3, 0.95, texture(source, qt_TexCoord0 + n * 0.012).a))
-                     + 0.4 * (1.0 - smoothstep(0.3, 0.95, texture(source, qt_TexCoord0 + n * 0.025).a));
+        float onEdge = 0.6 * (1.0 - smoothstep(0.3, 0.95, alphaAt(qt_TexCoord0 + n * 0.012)))
+                     + 0.4 * (1.0 - smoothstep(0.3, 0.95, alphaAt(qt_TexCoord0 + n * 0.025)));
         float s = qt_TexCoord0.x + qt_TexCoord0.y;                    // 0 top left .. 2 bottom right
         // top left: soft, reaching about to the middle of the edges; bottom right: same strength,
         // but shorter (like the icon theme's terminal icon)

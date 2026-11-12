@@ -222,8 +222,9 @@ Item {
         sourceComponent: ShaderEffect {
             visible: img.status === Image.Ready
             property variant source: img
-            property real rimWidth: Theme.desktop_icon_rim_width / Math.max(1, root.width)
-            property real strength: Theme.desktop_icon_rim_opacity
+            property size texel: Qt.size(1 / Math.max(1, root.width), 1 / Math.max(1, root.height))
+            property real rimPx: Theme.rim_width
+            property real strength: Theme.rim_opacity
             fragmentShader: Qt.resolvedUrl("shaders/glass_rim.frag.qsb")
             layer.enabled: true
             layer.smooth: true
