@@ -46,6 +46,7 @@ Rectangle {
             }
 
             Row {
+                visible: Monitors.gpu_available
                 spacing: 10
                 Text {
                     color: Theme.border

@@ -8,6 +8,9 @@ Item {
 
     property int cpu_temp: 0
     property int gpu_temp: 0
+    // false until nvidia-smi gives a real reading, and again if it errors or reports 0 (no NVIDIA GPU /
+    // driver, e.g. on an integrated GPU): the GPU sensor and its popup line are hidden meanwhile
+    property bool gpu_available: false
 
     property string network_type: ""
     property string network_icon: "󰤮"
@@ -17,10 +20,18 @@ Item {
         id: updateGpuTempProc
         command: ["bash", "-c", "nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader"]
 
+        // when it fails, nvidia-smi prints its error message on stdout, so only a number counts
         stdout: SplitParser {
             onRead: data => {
-                gpu_temp = data
-                //console.log(gpu_temp)
+                const t = parseInt(data)
+                root.gpu_available = !isNaN(t) && t > 0
+                root.gpu_temp = root.gpu_available ? t : 0
+            }
+        }
+        onExited: (exitCode, exitStatus) => {
+            if (exitCode !== 0) {
+                root.gpu_available = false
+                root.gpu_temp = 0
             }
         }
     }

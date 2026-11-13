@@ -9,6 +9,7 @@ import "../Theme"
 import "../Popups"
 
 Row {
+    visible: name !== "gpu" || Monitors.gpu_available   // no GPU reading (integrated GPU): hidden
     height: parent.height
     anchors.verticalCenter: parent.verticalCenter
     spacing: 4
