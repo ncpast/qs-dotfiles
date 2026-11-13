@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import Quickshell.Io
 import QtQuick
-import "../Theme"
+import "../../Theme"
 
 // The shell's settings app: a normal (floating) window, opened from anywhere through IPC:
 //   qs ipc call settings toggle | open | close

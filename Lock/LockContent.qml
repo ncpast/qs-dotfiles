@@ -349,8 +349,6 @@ Item {
                     color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.8)
                 }
 
-                // liquid glass rim (Widgets/shaders/glass_rim.frag), drawn from a hidden copy of the shape;
-                // supersampled so it's anti-aliased
                 Rectangle {
                     id: fieldRimShape
                     anchors.fill: parent
@@ -366,9 +364,10 @@ Item {
                     visible: opacity > 0
                     property variant source: fieldRimShape
                     property size texel: Qt.size(1 / Math.max(1, width), 1 / Math.max(1, height))
-                    property real rimPx: Theme.rim_width
-                    property real strength: Theme.rim_opacity
-                    fragmentShader: Qt.resolvedUrl("../Widgets/shaders/glass_rim.frag.qsb")
+                    property real rimPx: Theme.wide_rim_width
+                    property real strength: Theme.wide_rim_opacity
+                    property real reach: Theme.wide_rim_reach
+                    fragmentShader: Qt.resolvedUrl("../Widgets/shaders/wide_glass_rim.frag.qsb")
                     layer.enabled: true
                     layer.smooth: true
                     layer.mipmap: true

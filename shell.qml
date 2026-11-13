@@ -9,15 +9,20 @@ import "./Decor"
 import "./Desktop"
 import "./Popups/"
 import "./Theme"
+import "./Utils"
 import "./OSD"
 import "./Notifications"
 import "./Lock"
-import "./Settings"
+import "./apps/settings"
+import "./apps/calculator"
 
 ShellRoot {
     // The lock comes first; at a greetd autologin everything else waits until it covers the
     // screens (Lock.holdDesktop), so nothing is drawn before the lock screen.
     Lock { id: lock }
+
+    // 60 Hz on the power-saver profile (outside the loader: applies at the lock screen too)
+    RefreshRate {}
 
     // The frame (Visual) and the bars share Hyprland's Top layer, where whichever surface appears
     // last is drawn on top. Normally they're created together, frame first. At a greetd autologin,
@@ -44,6 +49,7 @@ ShellRoot {
             Notifications { id: notifications }
             UsbMonitor { notifications: notifications }
             Settings {}
+            Calculator {}
     
             EmptyBar {
                 anchors { bottom: true; left: true; right: true }

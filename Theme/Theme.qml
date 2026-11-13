@@ -11,9 +11,9 @@ QtObject {
 
     // ---- App icon style (desktop + top bar) --------------------------------------------------------
     // If several are on: tinted > coloured > dark mode.
-    property bool tintDesktopIcons: false   // iOS "liquid glass": accent tile + glyph, frosted wallpaper behind
-    property bool coloredIcons: false       // dark tile, logo in the tile's own colours (Steam: blue on dark)
-    property bool darkModeIcons: true       // white parts (logos, tiles) turn desktop_icon_dark_color
+    property bool tintDesktopIcons: false       // iOS "liquid glass": accent tile + glyph, frosted wallpaper behind
+    property bool coloredIcons:     false       // dark tile, logo in the tile's own colours (Steam: blue on dark)
+    property bool darkModeIcons:    true        // white parts (logos, tiles) turn desktop_icon_dark_color
 
     // Per app. Key: any name resolving to the app's icon (icon name, desktop entry id, window class).
     //   darkMode: false    dark mode leaves this app as it is
@@ -24,32 +24,33 @@ QtObject {
         "brave":            { keepWhite: true },
         "codium":           { darkMode: false },
         "nautilus":         { keepWhite: true },
-        "steam":            { coloredIcon: true },
-        "discord":          { coloredIcon: true },
-        "counter-strike-2": { coloredIcon: true, glyphScale: 0.8 }
+        "calculator":       { darkMode: false },
+        "steam":            { coloredIcon: darkModeIcons },
+        "discord":          { coloredIcon: darkModeIcons },
+        "counter-strike-2": { coloredIcon: darkModeIcons, glyphScale: 0.9 }
     })
 
     // dark mode + coloured
     readonly property color desktop_icon_dark_color: Qt.rgba(34 / 255, 34 / 255, 34 / 255, 1)
-    readonly property real dark_icon_gradient: 0.13     // tile lighter at the top than the bottom, 0 = flat
-    readonly property real dark_icon_rim: 0.3           // light bevel along the edge (top left + bottom right), 0 = none
+    readonly property real dark_icon_gradient: 0.13             // tile lighter at the top than the bottom, 0 = flat
+    readonly property real dark_icon_rim:      0.3              // light bevel along the edge (top left + bottom right), 0 = none
     // coloured
-    readonly property real colored_icon_lift: 0.3       // brighten the logo's colours: 0 = original, 1 = full
-    readonly property real colored_icon_highlight: 0.15  // glossy horizontal band across the logo, 0 = none
+    readonly property real colored_icon_lift:       0.3         // brighten the logo's colours: 0 = original, 1 = full
+    readonly property real colored_icon_highlight:  0.15        // glossy horizontal band across the logo, 0 = none
     // tinted
-    readonly property real desktop_icon_tint_opacity: 1     // how visible the tinted icon is
-    readonly property real desktop_icon_tile_opacity: 0.55  // dark tile behind the glyph (glass shows through the rest)
-    readonly property real desktop_icon_gloss: 0.12         // sheen across the top, 0..~0.3
-    readonly property real desktop_icon_glass_opacity: 0.3    // frosting over the blurred glass: 0 = clear, 1 = solid
-    readonly property real desktop_icon_glass_blur: 0.5     // 0..1
+    readonly property real desktop_icon_tint_opacity:  1        // how visible the tinted icon is
+    readonly property real desktop_icon_tile_opacity:  0.55     // dark tile behind the glyph (glass shows through the rest)
+    readonly property real desktop_icon_gloss:         0.12     // sheen across the top, 0..~0.3
+    readonly property real desktop_icon_glass_opacity: 0.3      // frosting over the blurred glass: 0 = clear, 1 = solid
+    readonly property real desktop_icon_glass_blur:    0.5      // 0..1
 
     // Focus mode (Theme/FocusMode.qml): while the focused workspace is in focus mode,
     // everything goes monotone black & white; otherwise the matugen colours (Colors.qml).
     readonly property bool monotone: FocusMode.active
 
-    readonly property color background:  monotone ? "#000000" : Colors.background
-    readonly property color background1: monotone ? "#111111" : Colors.background1
-    readonly property color background2: monotone ? "#222222" : Colors.background2
+    readonly property color background:   monotone ? "#000000" : Colors.background
+    readonly property color background1:  monotone ? "#111111" : Colors.background1
+    readonly property color background2:  monotone ? "#222222" : Colors.background2
 
     readonly property color border_light: monotone ? "#333333" : Colors.border_light
     readonly property color border:       monotone ? "#8a8a8a" : Colors.border
@@ -75,10 +76,17 @@ QtObject {
     readonly property int   button_shadow_radius: 8
     readonly property color button_shadow_color: Qt.rgba(0, 0, 0, 0.15)
 
-    // Liquid glass rim (Widgets/shaders/glass_rim.frag), everywhere it's used: desktop icons,
-    // lock screen field + power buttons, notification button row.
+    // Liquid glass rim (Widgets/shaders/glass_rim.frag), lit from the top: desktop icons,
+    // lock screen power buttons.
     readonly property real  rim_width: 1        // px
     readonly property real  rim_opacity: 0.2    // its brightest (top) part, 0..1
+
+    // Wide liquid glass rim (Widgets/shaders/wide_glass_rim.frag), lit diagonally from the top-left
+    // and bottom-right corners like the coloured icons' bevel: lock screen password field,
+    // notification cards + button row.
+    readonly property real  wide_rim_width: 1               // px
+    readonly property real  wide_rim_opacity: rim_opacity   // its brightest (corner) parts, 0..1
+    readonly property real  wide_rim_reach: 3               // how far the corner highlights extend, in heights
 
     // Drop shadows (lock screen, desktop icons, notification cards).
     // blur is a fraction (0..1) of blur_max (px).

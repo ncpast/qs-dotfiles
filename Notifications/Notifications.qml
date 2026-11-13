@@ -334,6 +334,32 @@ Scope {
                         brightness: bg.shade
                     }
 
+                    // wide liquid glass rim (Widgets/shaders/wide_glass_rim.frag) around the card, drawn
+                    // from a hidden copy of its shape; supersampled so it's anti-aliased. Inside bg, so it
+                    // follows the slide, the press scale and the hover brightness.
+                    Rectangle {
+                        id: cardRimShape
+                        anchors.fill: parent
+                        radius: bg.radius
+                        visible: false
+                        layer.enabled: true
+                        layer.smooth: true
+                        layer.textureSize: Qt.size(width * 4, height * 4)
+                    }
+                    ShaderEffect {
+                        anchors.fill: parent
+                        property variant source: cardRimShape
+                        property size texel: Qt.size(1 / Math.max(1, width), 1 / Math.max(1, height))
+                        property real rimPx: Theme.wide_rim_width
+                        property real strength: Theme.wide_rim_opacity
+                        property real reach: Theme.wide_rim_reach / 2
+                        fragmentShader: Qt.resolvedUrl("../Widgets/shaders/wide_glass_rim.frag.qsb")
+                        layer.enabled: true
+                        layer.smooth: true
+                        layer.mipmap: true
+                        layer.textureSize: Qt.size(width * 4, height * 4)
+                    }
+
                     // Click on the card itself. Declared before the content so the option buttons
                     // (declared after) sit on top of it and get their own clicks.
                     MouseArea {
@@ -502,7 +528,7 @@ Scope {
                             }
                         }
 
-                        // liquid glass rim (Widgets/shaders/glass_rim.frag) around the button row, drawn
+                        // wide liquid glass rim (Widgets/shaders/wide_glass_rim.frag) around the button row, drawn
                         // from a hidden copy of the box's shape; supersampled so it's anti-aliased
                         Rectangle {
                             id: optionsRimShape
@@ -517,8 +543,9 @@ Scope {
                             anchors.fill: parent
                             property variant source: optionsRimShape
                             property size texel: Qt.size(1 / Math.max(1, width), 1 / Math.max(1, height))
-                            property real rimPx: Theme.rim_width
-                            property real strength: Theme.rim_opacity
+                            property real rimPx: Theme.wide_rim_width
+                            property real strength: Theme.wide_rim_opacity
+                            property real reach: Theme.wide_rim_reach
                             fragmentShader: Qt.resolvedUrl("../Widgets/shaders/glass_rim.frag.qsb")
                             layer.enabled: true
                             layer.smooth: true

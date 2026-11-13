@@ -5,6 +5,7 @@ singleton PopupStates 1.0 PopupStates.qml
 singleton PowerProfiles 1.0 PowerProfiles.qml
 singleton HyprEvents 1.0 HyprEvents.qml
 singleton AppIcons 1.0 AppIcons.qml
+RefreshRate 1.0 RefreshRate.qml
 
 singleton Brightness 1.0 Brightness.qml
 singleton Wallpaper 1.0 Wallpaper.qml

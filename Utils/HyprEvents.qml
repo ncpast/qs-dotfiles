@@ -14,6 +14,7 @@ Singleton {
     property bool focusUrgentWindows: true
 
     // workspace id -> unique window classes in that workspace, e.g. { "1": ["kitty", "codium"] }
+    // (the shell's own app windows, class org.quickshell, appear under their title instead)
     property var workspaceApps: ({})
     // workspace id -> true if it has at least one tiled (non-floating) window
     property var workspaceTiled: ({})
@@ -30,8 +31,11 @@ Singleton {
                     for (var i = 0; i < clients.length; i++) {
                         var c = clients[i]
                         if (!c.mapped || c.workspace.id <= 0 || c["class"] === "") continue
+                        // every window of the shell's own apps (apps/) has the class org.quickshell, so
+                        // those are told apart by title, which matches their desktop entry's Name
+                        var app = c["class"] === "org.quickshell" && c.title !== "" ? c.title : c["class"]
                         var list = map[c.workspace.id] || (map[c.workspace.id] = [])
-                        if (list.indexOf(c["class"]) === -1) list.push(c["class"])
+                        if (list.indexOf(app) === -1) list.push(app)
                         if (!c.floating) tiled[c.workspace.id] = true
                     }
                 } catch (e) {}
